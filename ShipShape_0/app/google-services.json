@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "322511553256",
+    "firebase_url": "https://shipshape-7e3fb.firebaseio.com",
+    "project_id": "shipshape-7e3fb",
+    "storage_bucket": "shipshape-7e3fb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:322511553256:android:bbadbe45577df74b",
+        "android_client_info": {
+          "package_name": "shipshapedevices.shipshape_v0"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "322511553256-17a5hie5qmarh7maa589rtd86hr74eo8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkcPQLbvnMTiShSPdkJZaPVI95A1FlDO4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
