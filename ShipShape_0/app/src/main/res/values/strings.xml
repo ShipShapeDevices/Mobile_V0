@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ShipShape_v0</string>
+    <string name="title_activity_graph">GraphActivity</string>
 </resources>
