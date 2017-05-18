@@ -52,16 +52,18 @@ public class MyPackagesActivity extends RealmBaseActivity {
         firebase = FirebaseDatabase.getInstance().getReference();
 
         //clear realm
-        realm.beginTransaction();
-        realmResults.deleteAllFromRealm();
-        realm.commitTransaction();
+//        realm.beginTransaction();
+//        realmResults.deleteAllFromRealm();
+//        realm.commitTransaction();
 
 
         firebase.child("parcels").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
-                Parcel data = dataSnapshot.getValue(Parcel.class);
+                //copy data to buffer object (RealmList work-around)
+                TempParcel buffer = dataSnapshot.getValue(TempParcel.class);
+                Parcel data = buffer.convertForRealm();
                 //save to realm
                 Log.d("Here",data.getParcelID());
                 realm.beginTransaction();

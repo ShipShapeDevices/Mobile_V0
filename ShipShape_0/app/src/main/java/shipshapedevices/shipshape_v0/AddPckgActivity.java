@@ -34,6 +34,7 @@ public class AddPckgActivity extends AppCompatActivity {
     private FirebaseDatabase fireDB;
     private DatabaseReference parcelRef;
     private DatabaseReference userRef;
+    private String updateID;
 
     // Dummy variables for testing // TODO: 5/17/2017 delete after testing
     private RealmList<Data> impactOne;
@@ -203,22 +204,36 @@ public class AddPckgActivity extends AppCompatActivity {
         //open a new transaction with the realm db
         realm.beginTransaction();
         //check to confirm it doesn't already exist
-        RealmResults<Parcel> copies = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findAll();
-        if(copies.isEmpty()){
-            //send warning that package doesn't exist
-            Log.d(TAG,"no linked package found");
-            Toast toast = Toast.makeText(getApplicationContext(),"Package Does Not Exist", Toast.LENGTH_SHORT);
-            toast.show();
-        }
-        else{
-            //copy existing data from existing parcel
+        Log.d(TAG,"looking locally for parcel Id: " + p.getParcelID());
+        Parcel existingP = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findFirst();
+        if(existingP != null) {
             Log.d(TAG,"linked package found");
-            Parcel existingP = copies.get(0);
             p.setShipDate(existingP.getShipDate());
             p.setShipperID(existingP.getShipperID());
             p.setFirebaseID(existingP.getFirebaseID());
             realm.copyToRealmOrUpdate(p);
         }
+        else{
+            Log.d(TAG,"no linked package found");
+            Toast toast = Toast.makeText(getApplicationContext(),"Package Does Not Exist", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+//        RealmResults<Parcel> copies = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findAll();
+//        if(copies.isEmpty()){
+//            //send warning that package doesn't exist
+//            Log.d(TAG,"no linked package found");
+//            Toast toast = Toast.makeText(getApplicationContext(),"Package Does Not Exist", Toast.LENGTH_SHORT);
+//            toast.show();
+//        }
+//        else{
+//            //copy existing data from existing parcel
+//            Log.d(TAG,"linked package found");
+//            Parcel existingP = copies.get(0);
+//            p.setShipDate(existingP.getShipDate());
+//            p.setShipperID(existingP.getShipperID());
+//            p.setFirebaseID(existingP.getFirebaseID());
+//            realm.copyToRealmOrUpdate(p);
+//        }
         //close the transaction with the realm db
         realm.commitTransaction();
 
@@ -227,7 +242,9 @@ public class AddPckgActivity extends AppCompatActivity {
 
     private void updateParcelsInFirebase(Parcel p){
         //update the parcel in firebase using its key
-        parcelRef.child(p.getFirebaseID()).setValue(p).addOnCompleteListener(
+        updateID = p.getFirebaseID();
+        Log.d(TAG,"writing parcel to Firebase with fb Id: " + updateID);
+        parcelRef.child(updateID).setValue(p).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -447,7 +464,7 @@ public class AddPckgActivity extends AppCompatActivity {
                         Parcel p = new Parcel(dataTag);
                         p.setReceiverID(userName); // TODO: 5/17/2017 confirm receiver ID on scan
                         String currentTime = DateFormat.getDateTimeInstance().format(new Date());
-                        p.setRecieveDate(currentTime);
+                        p.setReceiveDate(currentTime);
                         // Add the data logs to the parcel
                         p.writeImpactEvent(impactOne);
                         p.writeImpactEvent(impactTwo);

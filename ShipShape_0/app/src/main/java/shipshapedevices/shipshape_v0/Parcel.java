@@ -72,11 +72,11 @@ public class Parcel extends RealmObject {
         this.shipDate = shipDate;
     }
 
-    public String getRecieveDate() {
+    public String getReceiveDate() {
         return receiveDate;
     }
-    public void setRecieveDate(String recieveDate) {
-        this.receiveDate = recieveDate;
+    public void setReceiveDate(String receiveDate) {
+        this.receiveDate = receiveDate;
     }
 
     public RealmList<ImpactEvent> getImpactEvents() {
@@ -112,7 +112,7 @@ public class Parcel extends RealmObject {
         impactEvents.add(ie);
     }
     public RealmList<Data> readImpactEvent(int eventIndex){
-        return impactEvents.get(eventIndex).accelLog; // TODO: 5/16/2017 query based on time instead of position
+        return impactEvents.get(eventIndex).getAccelLog(); // TODO: 5/16/2017 query based on time instead of position
     }
 
     public void writeTempLog(RealmList<Data> log){
