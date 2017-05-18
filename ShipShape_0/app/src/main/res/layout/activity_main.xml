@@ -18,17 +18,17 @@
         />
 
     <Button
-        android:id="@+id/transitPckgBtn"
+        android:id="@+id/myPckgsBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="View in-transit packages"
+        android:text="View my packages"
         />
 
     <Button
-        android:id="@+id/existPckgBtn"
+        android:id="@+id/statBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="View existing packages"
+        android:text="View statistics"
         />
 
 </LinearLayout>

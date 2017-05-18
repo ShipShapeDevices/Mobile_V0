@@ -8,14 +8,14 @@ import io.realm.RealmObject;
 
 // A logged data point
 public class Data extends RealmObject {
-    public double value;
-    public long time;
+    public float value;
+    public float time;
 
     // Empty constructor for Realm
     public Data(){}
 
     public Data(double v,long t) {
-        value = v;
-        time = t;
+        value = (float) v;
+        time = (float) t;
     }
 }
