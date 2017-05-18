@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private String userName;
     private int mId=1;
-    private DatabaseReference fireDataBase;
+    private DatabaseReference userRef;
 
     // Linking views
     @BindView(R.id.addPckgBtn) Button addPckgBtn;
@@ -88,8 +88,8 @@ public class MainActivity extends AppCompatActivity {
 //        });
 
         // Get instance off of firebase database
-        fireDataBase= FirebaseDatabase.getInstance().getReference("users"); //
-        fireDataBase.child(userName).addChildEventListener(new ChildEventListener() {
+        userRef= FirebaseDatabase.getInstance().getReference("users"); //
+        userRef.child(userName).addChildEventListener(new ChildEventListener() {
             @Override
 
             // when a child is added notify the user a package has shipped

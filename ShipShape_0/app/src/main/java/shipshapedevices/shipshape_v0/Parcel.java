@@ -19,7 +19,7 @@ public class Parcel extends RealmObject {
     private String parcelID;
     private String firebaseID;
     private String shipperID, receiverID;
-    private String shipDate, recieveDate;
+    private String shipDate, receiveDate;
     private RealmList<ImpactEvent> impactEvents;
     private RealmList<Data> tempLog;
     private RealmList<Data> humidLog;
@@ -73,10 +73,10 @@ public class Parcel extends RealmObject {
     }
 
     public String getRecieveDate() {
-        return recieveDate;
+        return receiveDate;
     }
     public void setRecieveDate(String recieveDate) {
-        this.recieveDate = recieveDate;
+        this.receiveDate = recieveDate;
     }
 
     public RealmList<ImpactEvent> getImpactEvents() {
