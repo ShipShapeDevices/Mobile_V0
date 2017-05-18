@@ -148,10 +148,19 @@ public class MyPackagesActivity extends RealmBaseActivity {
                     new View.OnClickListener(){
                         @Override
                         public void onClick(View v){
-                            Intent mypac2stat = new Intent(MyPackagesActivity.this,GraphingActivity.class);
-                            mypac2stat.putExtra("CurrentParcelID", parcel.getParcelID());
-                            startActivity(mypac2stat);
-                            Toast.makeText(MyPackagesActivity.this, parcel.getParcelID(), Toast.LENGTH_SHORT).show();
+                            // if data exists in parcel
+                            if(!parcel.getTempLog().isEmpty()) {
+                                Intent mypac2stat = new Intent(MyPackagesActivity.this, GraphingActivity.class);
+                                mypac2stat.putExtra("CurrentParcelID", parcel.getParcelID());
+                                startActivity(mypac2stat);
+                                Toast.makeText(MyPackagesActivity.this, parcel.getParcelID(), Toast.LENGTH_SHORT).show();
+                            }
+                            // else if no data exists in parcel
+                            else{
+                                //display error toast
+                                Toast toast = Toast.makeText(getApplicationContext(),"Parcel contains no data.", Toast.LENGTH_SHORT);
+                                toast.show();
+                            }
                         }
                     }
             );

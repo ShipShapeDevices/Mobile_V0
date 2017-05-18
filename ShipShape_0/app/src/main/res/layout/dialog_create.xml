@@ -13,7 +13,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:inputType="text"
-        android:text="1ECubulWlda3KRjwy01obdTX1EB3"
+        android:text="ZH1U5JrWZCRsKuDVTzq5an75Txn1"
         android:hint="Enter intended receiver ID" />
 
     <EditText

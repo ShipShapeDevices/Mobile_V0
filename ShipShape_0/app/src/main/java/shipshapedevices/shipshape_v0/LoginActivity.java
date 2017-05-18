@@ -158,7 +158,6 @@ public class LoginActivity extends AppCompatActivity {
                             User u = new User(user.getUid());
                             // Add new user to firebase user reference db
                             addUserToFirebase(u);
-
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.

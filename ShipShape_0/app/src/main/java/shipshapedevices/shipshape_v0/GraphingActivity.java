@@ -89,10 +89,10 @@ public class GraphingActivity extends AppCompatActivity {
         Parcel parcel = realm.where(Parcel.class).equalTo("parcelID", myParcel).findFirst();
 
         //get tempdata
-         tempData = parcel.getTempLog().where().findAll();
-         humidData = parcel.getHumidLog().where().findAll();
-         impactEvents = parcel.getImpactEvents().where().findAll();
-         accelData = impactEvents.first().getAccelLog().where().findAll();
+        tempData = parcel.getTempLog().where().findAll();
+        humidData = parcel.getHumidLog().where().findAll();
+        impactEvents = parcel.getImpactEvents().where().findAll();
+        accelData = impactEvents.first().getAccelLog().where().findAll();
 
         // create a DataSet and specify fields, MPAndroidChart-Realm does the rest
         barDataSet = new RealmBarDataSet<>(tempData, "time", "value");
@@ -136,12 +136,6 @@ public class GraphingActivity extends AppCompatActivity {
         accelChart.invalidate(); // refresh
         humidChart.invalidate(); // refresh
         tempChart.invalidate(); // refresh
-
-
-
-
-
-
     }
 
 

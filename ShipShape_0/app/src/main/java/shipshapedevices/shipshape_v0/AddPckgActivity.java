@@ -43,10 +43,10 @@ public class AddPckgActivity extends AppCompatActivity {
     private RealmList<Data> humidLog;
 
     // Items that will be received in the notification upon shipment
-    private String receiverID;
-    private String shipperID;
-    private String shipDate;
-    private String parcelID;
+//    private String receiverID;
+//    private String shipperID;
+//    private String shipDate;
+//    private String parcelID;
 
     // Linking views
     @BindView(R.id.createBtn) Button createBtn;
@@ -137,6 +137,7 @@ public class AddPckgActivity extends AppCompatActivity {
     }
 
     private void writeNewParcelToFirebase(Parcel p){
+        String receiverID = p.getReceiverID();
         //get a key from Firebase for the new parcel
         String newKey = parcelRef.push().getKey();
         //store the key locally
@@ -158,7 +159,7 @@ public class AddPckgActivity extends AppCompatActivity {
                 }
         );
         //add parcel ID to users
-        userRef.child(userName).push().setValue(new ParcelReference(newKey,"Shipper","Shipped")).addOnCompleteListener(
+        userRef.child(userName).child(newKey).setValue(new ParcelReference(newKey,"Shipper","Shipped")).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -173,7 +174,7 @@ public class AddPckgActivity extends AppCompatActivity {
                     }
                 }
         );
-        userRef.child(receiverID).push().setValue(new ParcelReference(newKey,"Receiver","Shipped")).addOnCompleteListener(
+        userRef.child(receiverID).child(newKey).setValue(new ParcelReference(newKey,"Receiver","Shipped")).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -242,7 +243,8 @@ public class AddPckgActivity extends AppCompatActivity {
 
     private void updateParcelsInFirebase(Parcel p){
         //update the parcel in firebase using its key
-        updateID = p.getFirebaseID();
+        String updateID = p.getFirebaseID();
+        String shipperID = p.getShipperID();
         Log.d(TAG,"writing parcel to Firebase with fb Id: " + updateID);
         parcelRef.child(updateID).setValue(p).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
@@ -262,7 +264,7 @@ public class AddPckgActivity extends AppCompatActivity {
                 }
         );
         //update parcel status to users // TODO: 5/17/2017 update instead of overwriting parcel references
-        userRef.child(userName).setValue(new ParcelReference(p.getFirebaseID(),"Receiver","Received")).addOnCompleteListener(
+        userRef.child(userName).child(updateID).setValue(new ParcelReference(p.getFirebaseID(),"Receiver","Received")).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -277,7 +279,7 @@ public class AddPckgActivity extends AppCompatActivity {
                     }
                 }
         );
-        userRef.child(shipperID).setValue(new ParcelReference(p.getFirebaseID(),"Shipper","Received")).addOnCompleteListener(
+        userRef.child(shipperID).child(updateID).setValue(new ParcelReference(p.getFirebaseID(),"Shipper","Received")).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -391,7 +393,7 @@ public class AddPckgActivity extends AppCompatActivity {
             createEnterButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    receiverID = createRecIDEntry.getText().toString();
+                    String receiverID = createRecIDEntry.getText().toString();
                     String dataTag = createTagEntry.getText().toString();
                     // If a valid ID & label has been entered
                     if(!receiverID.equals("")){
