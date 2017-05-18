@@ -11,10 +11,17 @@
     tools:context="shipshapedevices.shipshape_v0.AddPckgActivity">
 
     <Button
+        android:id="@+id/createBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create New Parcel"
+        />
+
+    <Button
         android:id="@+id/scanBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Upload Data"
+        android:text="Scan Received Parcel"
         />
 
 </LinearLayout>

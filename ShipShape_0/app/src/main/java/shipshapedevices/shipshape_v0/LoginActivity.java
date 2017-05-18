@@ -17,6 +17,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -25,7 +27,9 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
 
-    private FirebaseAuth bikeAuth;
+    private FirebaseAuth fireAuth;
+    private FirebaseDatabase fireDB;
+    private DatabaseReference userRef;
 
      //linking views
     @BindView(R.id.loginNameEntry) EditText nameEntry;
@@ -41,14 +45,16 @@ public class LoginActivity extends AppCompatActivity {
          //bind views
         ButterKnife.bind(this);
          //get Firebase instance
-        bikeAuth = FirebaseAuth.getInstance();
+        fireAuth = FirebaseAuth.getInstance();
+        fireDB = FirebaseDatabase.getInstance();
+        userRef = fireDB.getReference().child("users");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
          //check if user is signed in already
-        FirebaseUser currentUser = bikeAuth.getCurrentUser();
+        FirebaseUser currentUser = fireAuth.getCurrentUser();
          //populate text fields with current user creds
         updateUI(currentUser);
     }
@@ -138,7 +144,7 @@ public class LoginActivity extends AppCompatActivity {
 
      //register the user via Firebase
     private void registerUser(String email, String pw){
-        bikeAuth.createUserWithEmailAndPassword(email, pw)
+        fireAuth.createUserWithEmailAndPassword(email, pw)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -147,7 +153,12 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d(TAG, "createUserWithEmail:success");
                             Toast.makeText(LoginActivity.this, "Successfully registered!",
                                     Toast.LENGTH_SHORT).show();
-                            FirebaseUser user = bikeAuth.getCurrentUser();
+                            FirebaseUser user = fireAuth.getCurrentUser();
+                            // Create new user object for linking package references
+                            User u = new User(user.getUid());
+                            // Add new user to firebase user reference db
+                            addUserToFirebase(u);
+
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
@@ -162,14 +173,14 @@ public class LoginActivity extends AppCompatActivity {
 
      //log in the user via Firebase
     private void logInUser(String email, String pw){
-        bikeAuth.signInWithEmailAndPassword(email, pw)
+        fireAuth.signInWithEmailAndPassword(email, pw)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         //if login was successful
                         if(task.isSuccessful()){
                             //update UI for the user
-                            FirebaseUser user = bikeAuth.getCurrentUser();
+                            FirebaseUser user = fireAuth.getCurrentUser();
                             updateUI(user);
                             //change to control activity
                             startActivity(new Intent(getApplicationContext(), MainActivity.class));
@@ -193,5 +204,24 @@ public class LoginActivity extends AppCompatActivity {
             nameEntry.setText(user.getEmail());
             pwEntry.setText("");
         }
+    }
+
+    private void addUserToFirebase(User u){
+        //add the new user to firebase using the key
+        userRef.child(u.getUserID()).setValue(u).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //do nothing
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase user write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
     }
 }
