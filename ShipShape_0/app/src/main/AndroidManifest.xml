@@ -28,7 +28,15 @@
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".AddPckgActivity"
-            android:label="Scan Activity"
+            android:label="Add Package Activity"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+            android:name=".GraphingActivity"
+            android:label="Graphing Activity"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+            android:name=".MyPackagesActivity"
+            android:label="My Packages Activity"
             android:theme="@style/AppTheme.NoActionBar"/>
     </application>
 

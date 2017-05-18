@@ -34,6 +34,7 @@ public class AddPckgActivity extends AppCompatActivity {
     private FirebaseDatabase fireDB;
     private DatabaseReference parcelRef;
     private DatabaseReference userRef;
+    private String updateID;
 
     // Dummy variables for testing // TODO: 5/17/2017 delete after testing
     private RealmList<Data> impactOne;
@@ -42,10 +43,10 @@ public class AddPckgActivity extends AppCompatActivity {
     private RealmList<Data> humidLog;
 
     // Items that will be received in the notification upon shipment
-    private String receiverID;
-    private String shipperID;
-    private String shipDate;
-    private String parcelID;
+//    private String receiverID;
+//    private String shipperID;
+//    private String shipDate;
+//    private String parcelID;
 
     // Linking views
     @BindView(R.id.createBtn) Button createBtn;
@@ -136,6 +137,7 @@ public class AddPckgActivity extends AppCompatActivity {
     }
 
     private void writeNewParcelToFirebase(Parcel p){
+        String receiverID = p.getReceiverID();
         //get a key from Firebase for the new parcel
         String newKey = parcelRef.push().getKey();
         //store the key locally
@@ -157,7 +159,7 @@ public class AddPckgActivity extends AppCompatActivity {
                 }
         );
         //add parcel ID to users
-        userRef.child(userName).push().setValue(new ParcelReference(newKey,"Shipper","Shipped")).addOnCompleteListener(
+        userRef.child(userName).child(newKey).setValue(new ParcelReference(newKey,"Shipper","Shipped")).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -172,7 +174,7 @@ public class AddPckgActivity extends AppCompatActivity {
                     }
                 }
         );
-        userRef.child(receiverID).push().setValue(new ParcelReference(newKey,"Receiver","Shipped")).addOnCompleteListener(
+        userRef.child(receiverID).child(newKey).setValue(new ParcelReference(newKey,"Receiver","Shipped")).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -203,22 +205,36 @@ public class AddPckgActivity extends AppCompatActivity {
         //open a new transaction with the realm db
         realm.beginTransaction();
         //check to confirm it doesn't already exist
-        RealmResults<Parcel> copies = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findAll();
-        if(copies.isEmpty()){
-            //send warning that package doesn't exist
-            Log.d(TAG,"no linked package found");
-            Toast toast = Toast.makeText(getApplicationContext(),"Package Does Not Exist", Toast.LENGTH_SHORT);
-            toast.show();
-        }
-        else{
-            //copy existing data from existing parcel
+        Log.d(TAG,"looking locally for parcel Id: " + p.getParcelID());
+        Parcel existingP = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findFirst();
+        if(existingP != null) {
             Log.d(TAG,"linked package found");
-            Parcel existingP = copies.get(0);
             p.setShipDate(existingP.getShipDate());
             p.setShipperID(existingP.getShipperID());
             p.setFirebaseID(existingP.getFirebaseID());
             realm.copyToRealmOrUpdate(p);
         }
+        else{
+            Log.d(TAG,"no linked package found");
+            Toast toast = Toast.makeText(getApplicationContext(),"Package Does Not Exist", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+//        RealmResults<Parcel> copies = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findAll();
+//        if(copies.isEmpty()){
+//            //send warning that package doesn't exist
+//            Log.d(TAG,"no linked package found");
+//            Toast toast = Toast.makeText(getApplicationContext(),"Package Does Not Exist", Toast.LENGTH_SHORT);
+//            toast.show();
+//        }
+//        else{
+//            //copy existing data from existing parcel
+//            Log.d(TAG,"linked package found");
+//            Parcel existingP = copies.get(0);
+//            p.setShipDate(existingP.getShipDate());
+//            p.setShipperID(existingP.getShipperID());
+//            p.setFirebaseID(existingP.getFirebaseID());
+//            realm.copyToRealmOrUpdate(p);
+//        }
         //close the transaction with the realm db
         realm.commitTransaction();
 
@@ -227,7 +243,10 @@ public class AddPckgActivity extends AppCompatActivity {
 
     private void updateParcelsInFirebase(Parcel p){
         //update the parcel in firebase using its key
-        parcelRef.child(p.getFirebaseID()).setValue(p).addOnCompleteListener(
+        String updateID = p.getFirebaseID();
+        String shipperID = p.getShipperID();
+        Log.d(TAG,"writing parcel to Firebase with fb Id: " + updateID);
+        parcelRef.child(updateID).setValue(p).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -245,7 +264,7 @@ public class AddPckgActivity extends AppCompatActivity {
                 }
         );
         //update parcel status to users // TODO: 5/17/2017 update instead of overwriting parcel references
-        userRef.child(userName).setValue(new ParcelReference(p.getFirebaseID(),"Receiver","Received")).addOnCompleteListener(
+        userRef.child(userName).child(updateID).setValue(new ParcelReference(p.getFirebaseID(),"Receiver","Received")).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -260,7 +279,7 @@ public class AddPckgActivity extends AppCompatActivity {
                     }
                 }
         );
-        userRef.child(shipperID).setValue(new ParcelReference(p.getFirebaseID(),"Shipper","Received")).addOnCompleteListener(
+        userRef.child(shipperID).child(updateID).setValue(new ParcelReference(p.getFirebaseID(),"Shipper","Received")).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -374,7 +393,7 @@ public class AddPckgActivity extends AppCompatActivity {
             createEnterButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    receiverID = createRecIDEntry.getText().toString();
+                    String receiverID = createRecIDEntry.getText().toString();
                     String dataTag = createTagEntry.getText().toString();
                     // If a valid ID & label has been entered
                     if(!receiverID.equals("")){
@@ -447,7 +466,7 @@ public class AddPckgActivity extends AppCompatActivity {
                         Parcel p = new Parcel(dataTag);
                         p.setReceiverID(userName); // TODO: 5/17/2017 confirm receiver ID on scan
                         String currentTime = DateFormat.getDateTimeInstance().format(new Date());
-                        p.setRecieveDate(currentTime);
+                        p.setReceiveDate(currentTime);
                         // Add the data logs to the parcel
                         p.writeImpactEvent(impactOne);
                         p.writeImpactEvent(impactTwo);
