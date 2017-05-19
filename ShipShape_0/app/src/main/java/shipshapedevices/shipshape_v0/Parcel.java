@@ -19,7 +19,7 @@ public class Parcel extends RealmObject {
     private String parcelID;
     private String firebaseID;
     private String shipperID, receiverID;
-    private Date shipDate, recieveDate;
+    private String shipDate, receiveDate;
     private RealmList<ImpactEvent> impactEvents;
     private RealmList<Data> tempLog;
     private RealmList<Data> humidLog;
@@ -65,18 +65,18 @@ public class Parcel extends RealmObject {
         this.receiverID = receiverID;
     }
 
-    public Date getShipDate() {
+    public String getShipDate() {
         return shipDate;
     }
-    public void setShipDate(Date shipDate) {
+    public void setShipDate(String shipDate) {
         this.shipDate = shipDate;
     }
 
-    public Date getRecieveDate() {
-        return recieveDate;
+    public String getReceiveDate() {
+        return receiveDate;
     }
-    public void setRecieveDate(Date recieveDate) {
-        this.recieveDate = recieveDate;
+    public void setReceiveDate(String receiveDate) {
+        this.receiveDate = receiveDate;
     }
 
     public RealmList<ImpactEvent> getImpactEvents() {
@@ -112,7 +112,7 @@ public class Parcel extends RealmObject {
         impactEvents.add(ie);
     }
     public RealmList<Data> readImpactEvent(int eventIndex){
-        return impactEvents.get(eventIndex).accelLog; // TODO: 5/16/2017 query based on time instead of position
+        return impactEvents.get(eventIndex).getAccelLog(); // TODO: 5/16/2017 query based on time instead of position
     }
 
     public void writeTempLog(RealmList<Data> log){

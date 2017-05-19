@@ -1,5 +1,6 @@
 package shipshapedevices.shipshape_v0;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import io.realm.RealmList;
@@ -9,29 +10,23 @@ import io.realm.RealmObject;
  * Created by Luke on 5/16/2017.
  */
 
-
 // An impact event
-public class ImpactEvent extends RealmObject {
-    private RealmList<Data> accelLog;
+public class TempImpactEvent{
+    private ArrayList<Data> accelLog;
     private String impactTime; // TODO: 5/16/2017 make use of impact time as primary key
 
-    // Empty constructor for Realm
-    public ImpactEvent(){}
+    public TempImpactEvent(){}
 
-    public ImpactEvent(RealmList<Data> accelLog) {
-        this.accelLog = accelLog;
-    }
-    
-    public ImpactEvent(String impactTime, RealmList<Data> accelLog) {
+    public TempImpactEvent(String impactTime, ArrayList<Data> accelLog) {
         this.impactTime = impactTime;
         this.accelLog = accelLog;
     }
 
-    public RealmList<Data> getAccelLog() {
+    public ArrayList<Data> getAccelLog() {
         return accelLog;
     }
 
-    public void setAccelLog(RealmList<Data> accelLog) {
+    public void setAccelLog(ArrayList<Data> accelLog) {
         this.accelLog = accelLog;
     }
 

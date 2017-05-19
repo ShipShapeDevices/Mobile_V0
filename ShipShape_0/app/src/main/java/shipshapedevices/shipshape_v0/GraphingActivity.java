@@ -79,28 +79,23 @@ public class GraphingActivity extends AppCompatActivity {
 
         //myPackagesActivity
         Bundle bundle = getIntent().getExtras();
-        String myParcel = bundle.getString("message");
+        String myParcel = bundle.getString("CurrentParcelID");
 
         // load  data from Realm database  -KkKULGxnrO1pB3y-ldQ
 //        //get parcel Id
 //        String myParcel = "-KkKULGxnrO1pB3y-ldQ";
 //        //search for parcel
         //String myParcel = getParcelID; ///"parcelID",
-        //Parcel parcel = realm.where(Parcel.class).equalTo("parcelID", myParcel).findFirst();
         Parcel parcel = realm.where(Parcel.class).equalTo("parcelID", myParcel).findFirst();
 
-        //Parcel parcel = realm.where(Parcel.class).findFirst();
-
         //get tempdata
-         tempData = parcel.getTempLog().where().findAll();
-         humidData = parcel.getHumidLog().where().findAll();
-         impactEvents = parcel.getImpactEvents().where().findAll();
-         accelData = impactEvents.first().accelLog.where().findAll();
-
+        tempData = parcel.getTempLog().where().findAll();
+        humidData = parcel.getHumidLog().where().findAll();
+        impactEvents = parcel.getImpactEvents().where().findAll();
+        accelData = impactEvents.first().getAccelLog().where().findAll();
 
         // create a DataSet and specify fields, MPAndroidChart-Realm does the rest
         barDataSet = new RealmBarDataSet<>(tempData, "time", "value");
-
 
         //set label
         barDataSet.setLabel("Temp Data");
@@ -141,12 +136,6 @@ public class GraphingActivity extends AppCompatActivity {
         accelChart.invalidate(); // refresh
         humidChart.invalidate(); // refresh
         tempChart.invalidate(); // refresh
-
-
-
-
-
-
     }
 
 

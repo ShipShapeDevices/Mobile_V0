@@ -2,7 +2,6 @@ package shipshapedevices.shipshape_v0;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +17,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.DateFormat;
+import java.util.Date;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.Realm;
@@ -28,9 +30,11 @@ public class AddPckgActivity extends AppCompatActivity {
 
     private static final String TAG = "AddPckgActivity";
     private Realm realm;
-    private String userName = "test_user";
+    private String userName;
     private FirebaseDatabase fireDB;
     private DatabaseReference parcelRef;
+    private DatabaseReference userRef;
+    private String updateID;
 
     // Dummy variables for testing // TODO: 5/17/2017 delete after testing
     private RealmList<Data> impactOne;
@@ -38,7 +42,14 @@ public class AddPckgActivity extends AppCompatActivity {
     private RealmList<Data> tempLog;
     private RealmList<Data> humidLog;
 
+    // Items that will be received in the notification upon shipment
+//    private String receiverID;
+//    private String shipperID;
+//    private String shipDate;
+//    private String parcelID;
+
     // Linking views
+    @BindView(R.id.createBtn) Button createBtn;
     @BindView(R.id.scanBtn) Button scanBtn;
 
     @Override
@@ -50,10 +61,11 @@ public class AddPckgActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         //get the current username
-        // TODO: 5/17/2017  userName = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        //get reference to Firebase database;
+        userName = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        //get reference to Firebase items
         fireDB = FirebaseDatabase.getInstance();
         parcelRef = fireDB.getReference().child("parcels");
+        userRef = fireDB.getReference().child("users");
     }
 
     @Override
@@ -64,11 +76,23 @@ public class AddPckgActivity extends AppCompatActivity {
         realm = Realm.getDefaultInstance();
 
         // Add button listeners
+        // Create Package Button:
+        createBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Open a dialog for data upload
+                CreateDialog dialog = new CreateDialog(AddPckgActivity.this);
+                dialog.show();
+                // Start the NFC write process
+                // TODO: 5/17/2017
+            }
+        });
+
         // Scan Package Button:
         scanBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Start the scanning process
+                // Start the NFC read process
                 // TODO: 5/16/2017
                 // Open a dialog for data upload
                 ScanDialog dialog = new ScanDialog(AddPckgActivity.this);
@@ -88,14 +112,14 @@ public class AddPckgActivity extends AppCompatActivity {
     private void addToParcels(Parcel p){
         //add new item to Firebase
         if (fireDB != null) {
-            writeToFirebase(p); //also sets the FbKey for ride
-            Log.d(TAG,"ride written to firebase with key: "+p.getFirebaseID());
+            writeNewParcelToFirebase(p); //also sets the FbKey for parcel
+            Log.d(TAG,"parcel written to firebase with key: "+p.getFirebaseID());
         }
         //add new item to Realm
-        writeToRealm(p);
+        writeNewParcelToRealm(p);
     }
 
-    private void writeToRealm(Parcel p){
+    private void writeNewParcelToRealm(Parcel p){
         //open a new transaction with the realm db
         realm.beginTransaction();
         //check to confirm it doesn't already exist
@@ -112,12 +136,13 @@ public class AddPckgActivity extends AppCompatActivity {
         realm.commitTransaction();
     }
 
-    private void writeToFirebase(Parcel p){
-        //get a key from Firebase for the new ride
+    private void writeNewParcelToFirebase(Parcel p){
+        String receiverID = p.getReceiverID();
+        //get a key from Firebase for the new parcel
         String newKey = parcelRef.push().getKey();
         //store the key locally
         p.setFirebaseID(newKey);
-        //add the new ride to firebase using the key
+        //add the new parcel to firebase using the key
         parcelRef.child(newKey).setValue(p).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
@@ -127,7 +152,143 @@ public class AddPckgActivity extends AppCompatActivity {
                         }
                         else{
                             //display error toast
-                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase write error", Toast.LENGTH_SHORT);
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+        //add parcel ID to users
+        userRef.child(userName).child(newKey).setValue(new ParcelReference(newKey,"Shipper","Shipped")).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //do nothing
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+        userRef.child(receiverID).child(newKey).setValue(new ParcelReference(newKey,"Receiver","Shipped")).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //do nothing
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+    }
+
+    private void updateParcels(Parcel p){
+        //update item in Realm
+        Parcel updatedP = updateParcelsInRealm(p);
+        //update item in Firebase
+        if (fireDB != null) {
+            updateParcelsInFirebase(updatedP); //also sets the FbKey for parcel
+            Log.d(TAG,"parcel updated in firebase with key: "+p.getFirebaseID());
+        }
+    }
+
+    private Parcel updateParcelsInRealm(Parcel p){
+        //open a new transaction with the realm db
+        realm.beginTransaction();
+        //check to confirm it doesn't already exist
+        Log.d(TAG,"looking locally for parcel Id: " + p.getParcelID());
+        Parcel existingP = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findFirst();
+        if(existingP != null) {
+            Log.d(TAG,"linked package found");
+            p.setShipDate(existingP.getShipDate());
+            p.setShipperID(existingP.getShipperID());
+            p.setFirebaseID(existingP.getFirebaseID());
+            realm.copyToRealmOrUpdate(p);
+        }
+        else{
+            Log.d(TAG,"no linked package found");
+            Toast toast = Toast.makeText(getApplicationContext(),"Package Does Not Exist", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+//        RealmResults<Parcel> copies = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findAll();
+//        if(copies.isEmpty()){
+//            //send warning that package doesn't exist
+//            Log.d(TAG,"no linked package found");
+//            Toast toast = Toast.makeText(getApplicationContext(),"Package Does Not Exist", Toast.LENGTH_SHORT);
+//            toast.show();
+//        }
+//        else{
+//            //copy existing data from existing parcel
+//            Log.d(TAG,"linked package found");
+//            Parcel existingP = copies.get(0);
+//            p.setShipDate(existingP.getShipDate());
+//            p.setShipperID(existingP.getShipperID());
+//            p.setFirebaseID(existingP.getFirebaseID());
+//            realm.copyToRealmOrUpdate(p);
+//        }
+        //close the transaction with the realm db
+        realm.commitTransaction();
+
+        return p;
+    }
+
+    private void updateParcelsInFirebase(Parcel p){
+        //update the parcel in firebase using its key
+        String updateID = p.getFirebaseID();
+        String shipperID = p.getShipperID();
+        Log.d(TAG,"writing parcel to Firebase with fb Id: " + updateID);
+        parcelRef.child(updateID).setValue(p).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Parcel updated", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+        //update parcel status to users // TODO: 5/17/2017 update instead of overwriting parcel references
+        userRef.child(userName).child(updateID).setValue(new ParcelReference(p.getFirebaseID(),"Receiver","Received")).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //do nothing
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+        userRef.child(shipperID).child(updateID).setValue(new ParcelReference(p.getFirebaseID(),"Shipper","Received")).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //do nothing
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
                             toast.show();
                         }
                     }
@@ -206,6 +367,69 @@ public class AddPckgActivity extends AppCompatActivity {
         humidLog.add(new Data(0.72,25));
     }
 
+    // Dialog for data writing/upload interaction
+    public class CreateDialog extends Dialog {
+        // Link views
+        @BindView(R.id.createRecIDEntry) EditText createRecIDEntry;
+        @BindView(R.id.createTagEntry) EditText createTagEntry;
+        @BindView(R.id.createEnterButton) Button createEnterButton;
+        @BindView(R.id.createCancelButton) Button createCancelButton;
+
+        public CreateDialog(@NonNull Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setTitle("Create new package");
+            setCancelable(true);
+            // Link the dialog layout
+            setContentView(R.layout.dialog_create);
+            // Bind views
+            ButterKnife.bind(this);
+
+            // If user clicks "Enter" button in dialog =>
+            createEnterButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    String receiverID = createRecIDEntry.getText().toString();
+                    String dataTag = createTagEntry.getText().toString();
+                    // If a valid ID & label has been entered
+                    if(!receiverID.equals("")){
+                        // Create a new parcel (realm object)
+                        Parcel p = new Parcel(dataTag);
+                        p.setShipperID(userName);
+                        p.setReceiverID(receiverID); // TODO: 5/17/2017 send notification to receiver
+                        String currentTime = DateFormat.getDateTimeInstance().format(new Date());
+                        p.setShipDate(currentTime);
+                        // Add the parcel to Realm & Firebase
+                        addToParcels(p);
+                        // Dismiss the dialog
+                        dismiss();
+                    }
+                    //if an invalid ID
+                    else{
+                        // Populate toast with warning
+                        String unlockToastText = "Enter a receiver for the package";
+                        // Show toast
+                        Toast toast = Toast.makeText(getApplicationContext(), unlockToastText, Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
+                }
+            });
+
+            //If user clicks the "Cancel" button in the dialog =>
+            createCancelButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //dismiss the dialog
+                    dismiss();
+                }
+            });
+        }
+    }
+    
     // Dialog for data scanning/upload interaction
     public class ScanDialog extends Dialog {
         // Link views
@@ -220,7 +444,7 @@ public class AddPckgActivity extends AppCompatActivity {
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            setTitle("Scan new package");
+            setTitle("Scan received package");
             setCancelable(true);
             // Link the dialog layout
             setContentView(R.layout.dialog_scan);
@@ -234,21 +458,22 @@ public class AddPckgActivity extends AppCompatActivity {
                     String dataTag = scanTagEntry.getText().toString();
                     // If a valid ID has been entered
                     if(!dataTag.equals("")){
+                        // Begin scanning
                         // TODO: 5/16/2017
                         // Pull the data from the dummy files
-                        createDummyLogs();
+                        createDummyLogs(); // TODO: 5/17/2017 delete after testing 
                         // Create a new parcel (realm object)
                         Parcel p = new Parcel(dataTag);
-                        p.setShipperID("test_shipper");
-                        p.setReceiverID(userName);
-                        p.setRecieveDate(Calendar.getInstance().getTime());
+                        p.setReceiverID(userName); // TODO: 5/17/2017 confirm receiver ID on scan
+                        String currentTime = DateFormat.getDateTimeInstance().format(new Date());
+                        p.setReceiveDate(currentTime);
                         // Add the data logs to the parcel
                         p.writeImpactEvent(impactOne);
                         p.writeImpactEvent(impactTwo);
                         p.writeTempLog(tempLog);
                         p.writeHumidLog(humidLog);
-                        // Add the parcel to Realm & Firebase
-                        addToParcels(p);
+                        // Update the parcel in Realm & Firebase
+                        updateParcels(p);
                         // Dismiss the dialog
                         dismiss();
                     }
