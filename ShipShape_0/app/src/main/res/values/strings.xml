@@ -1,3 +1,35 @@
 <resources>
     <string name="app_name">ShipShape_v0</string>
+
+    <string name="username_login_text">Username</string>
+    <string name="password_login_text">Password</string>
+    <string name="button_login_text">Login</string>
+    <string name="name_sign_up_text">Name</string>
+    <string name="button_sign_up_text">Sign Up</string>
+    <string name="create_account_text">Create New Account</string>
+    <string name="button_ok_text">OK</string>
+    <string name="username_exists_toast">Username Already Exists</string>
+
+    <string name="my_password"></string>
+    <string name="my_username"></string>
+    <string name="password_unsuccessful_toast">Incorrect Password</string>
+    <string name="username_does_not_exist_toast">Username Does Not Exist </string>
+    <string name="unsuccessful_toast">Incorrect Username</string>
+    <string name="successful_toast">Welcome!</string>
+
+    <string name="please_enter_name_toast">Please Enter Name</string>
+    <string name="please_enter_username_toast">Please Enter Username</string>
+    <string name="please_enter_password_toast">Please Enter Password</string>
+    <string name="password_to_short_toast">Password is to short</string>
+
+    <string name="button_sign_out_text">Sign Out</string>
+    <string name="cancel_text">Cancel</string>
+    <string name="accept_text">Accept</string>
+
+    <string name="login_failed_text">Login Failed</string>
+    <string name="weak_password_text">Weak Password</string>
+    <string name="invalid_email_text">Invalid Email</string>
+
+    <string name="no_network_text">No Network Connection</string>
+
 </resources>

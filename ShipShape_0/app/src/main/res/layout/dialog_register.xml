@@ -1,46 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp" >
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
 
-        <EditText
-            android:id="@+id/registerNameEntry"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:hint="Enter new user email" />
-        <EditText
-            android:id="@+id/registerPWEntry"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:hint="Enter New Password" />
-
-    <LinearLayout
-        android:orientation="horizontal"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal">
-        <Button
-            android:id="@+id/registerEnterButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:hint="Register"/>
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="@string/create_account_text"
+        android:textAppearance="@style/TextAppearance.AppCompat.Button" />
+
+    <EditText
+        android:id="@+id/textedit_name_sign_up"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
+        android:inputType="text"
+        android:hint="@string/name_sign_up_text" />
+
+
+    <EditText
+        android:id="@+id/textedit_username_sign_up"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
+        android:inputType="textEmailAddress"
+        android:hint="@string/username_login_text" />
+
+    <EditText
+        android:id="@+id/textedit_password_sign_up"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
+        android:inputType="textPassword"
+        android:hint="@string/password_login_text" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp">
 
         <Button
-            android:id="@+id/registerCancelButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:id="@+id/button_cancel_sign_up"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:hint="Cancel"/>
+            android:layout_marginEnd="10dp"
+            android:text="@string/cancel_text"/>
+
+        <Button
+            android:id="@+id/button_ok_sign_up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/button_ok_text"/>
 
     </LinearLayout>
 

@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.addPckgBtn) Button addPckgBtn;
     @BindView(R.id.myPckgsBtn) Button myPckgsBtn;
     @BindView(R.id.statBtn) Button statBtn;
+    @BindView(R.id.button_sign_out) Button signOutButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +44,22 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         userName = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        signOutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+
+            public void onClick(View v) {
+                //sign out
+                FirebaseAuth  mAuthUsers = FirebaseAuth.getInstance();
+                mAuthUsers.signOut();
+                // start Login activity
+                Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(i);
+                // finish this activity
+                finish();
+            }
+        });
+
     }
 
     @Override

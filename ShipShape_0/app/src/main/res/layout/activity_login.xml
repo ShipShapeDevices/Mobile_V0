@@ -1,64 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:layout_centerVertical="true"
+    android:gravity="top"
     tools:context="shipshapedevices.shipshape_v0.MainActivity">
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <EditText
+        android:id="@+id/textedit_username_login"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <TextView
-            android:id="@+id/loginNameLabel"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:text="User Email" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
+        android:inputType="textEmailAddress"
+        android:hint="@string/username_login_text" />
 
-        <EditText
-            android:id="@+id/loginNameEntry"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:hint="Enter Email" />
-    </LinearLayout>
+    <EditText
+        android:id="@+id/textedit_password_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
+        android:inputType="textPassword"
+        android:hint="@string/password_login_text" />
 
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-        <TextView
-            android:id="@+id/loginPWLabel"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:text="Password" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        android:weightSum="2">
 
-        <EditText
-            android:id="@+id/loginPWEntry"
-            android:layout_width="fill_parent"
+        <Button
+            android:id="@+id/button_sign_up"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:hint="Enter Password"/>
+            android:layout_weight="1"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginLeft="20dp"
+            android:text="@string/button_sign_up_text" />
+
+        <Button
+            android:id="@+id/button_login"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginLeft="10dp"
+            android:text="@string/button_login_text" />
+
+
+
+
     </LinearLayout>
-
-    <Button
-        android:id="@+id/loginButton"
-        android:layout_width="368dp"
-        android:layout_height="wrap_content"
-        android:text="Login"
-        />
-
-    <Button
-        android:id="@+id/registerButton"
-        android:layout_width="368dp"
-        android:layout_height="wrap_content"
-        android:text="Register new user"
-        />
 
 </LinearLayout>
