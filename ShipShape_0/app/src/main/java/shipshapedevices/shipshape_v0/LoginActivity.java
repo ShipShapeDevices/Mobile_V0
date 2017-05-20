@@ -255,7 +255,7 @@ public class LoginActivity extends AppCompatActivity {
                                             mPasswordSignUp.setText("");
                                             //close
                                             dismiss();
-                                            // start Control activity
+                                            // start Main activity
                                             Intent i = new Intent(LoginActivity.this,MainActivity.class);
                                             startActivity(i);
                                             // finish this activity
