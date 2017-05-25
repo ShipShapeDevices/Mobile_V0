@@ -1,13 +1,18 @@
 package com.example.jcborn.nfcdemo;
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcAdapter.CreateNdefMessageCallback;
 import android.nfc.NfcEvent;
+import android.nfc.tech.Ndef;
+import android.nfc.tech.NfcF;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.nio.charset.Charset;
@@ -16,6 +21,13 @@ import java.nio.charset.Charset;
 public class MainActivity extends Activity implements CreateNdefMessageCallback {
     NfcAdapter mNfcAdapter;
     TextView textView;
+
+    private NfcAdapter mAdapter;
+    private PendingIntent mPendingIntent;
+    private IntentFilter[] mFilters;
+    private String[][] mTechLists;
+    private TextView mText;
+    private int mCount = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -29,6 +41,23 @@ public class MainActivity extends Activity implements CreateNdefMessageCallback 
             finish();
             return;
         }
+
+//        // Setup an intent filter for all MIME based dispatches
+//        IntentFilter ndef = new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED);
+//        try {
+//            ndef.addDataType("*/*");
+//        } catch (IntentFilter.MalformedMimeTypeException e) {
+//            throw new RuntimeException("fail", e);
+//        }
+//        mFilters = new IntentFilter[] {
+//                ndef,
+//
+//        };
+//
+//        // Setup a tech list for all NfcF tags
+//        mTechLists = new String[][] { new String[] { NfcF.class.getName() } };
+
+
         // Register callback
         mNfcAdapter.setNdefPushMessageCallback(this, this);
     }
@@ -58,11 +87,22 @@ public class MainActivity extends Activity implements CreateNdefMessageCallback 
         // Check to see that the Activity started due to an Android Beam
         if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(getIntent().getAction())) {
             processIntent(getIntent());
+        //    mNfcAdapter.enableForegroundDispatch(this, mPendingIntent, mFilters, mTechLists);
+
         }
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        //forground disabled
+      //  mNfcAdapter.disableForegroundDispatch(this);
+
+    }
+
+    @Override
     public void onNewIntent(Intent intent) {
+        Log.i("Foreground dispatch", "Discovered tag with intent: " + intent);
         // onResume gets called after this to handle the intent
         setIntent(intent);
     }
@@ -71,6 +111,8 @@ public class MainActivity extends Activity implements CreateNdefMessageCallback 
      * Parses the NDEF Message from the intent and prints to the TextView
      */
     void processIntent(Intent intent) {
+        Toast.makeText(this, "Intent", Toast.LENGTH_LONG).show();
+
         textView = (TextView) findViewById(R.id.textView_explanation);
         Parcelable[] rawMsgs = intent.getParcelableArrayExtra(
                 NfcAdapter.EXTRA_NDEF_MESSAGES);

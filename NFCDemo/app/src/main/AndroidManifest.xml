@@ -3,6 +3,8 @@
     package="com.example.jcborn.nfcdemo">
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
 
     <application
         android:allowBackup="true"
@@ -23,7 +25,7 @@
 
                 <category android:name="android.intent.category.DEFAULT" />
 
-                <data android:mimeType="text/*" />
+                <data android:mimeType="text/plain" />
             </intent-filter>
 
 
