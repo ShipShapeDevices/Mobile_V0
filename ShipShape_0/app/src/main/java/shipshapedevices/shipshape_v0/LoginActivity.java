@@ -39,8 +39,6 @@ public class LoginActivity extends AppCompatActivity {
     @BindView(R.id.signUpLink)
     TextView signUpLink;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,13 +51,10 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 // verify if valid user
                 validate();
-
             } // end onclikck action
         });// end setting up listener
-
 
         // add button listener for Sign up link
         signUpLink.setOnClickListener(new View.OnClickListener() {
@@ -81,27 +76,25 @@ public class LoginActivity extends AppCompatActivity {
         // Check if user is signed in (non-null) and update UI accordingly. 
         FirebaseUser currentUser = mAuthUsers.getCurrentUser();
         if (currentUser != null){
-            Intent i = new Intent (LoginActivity.this, MainActivity.class);
+            Intent i = new Intent (LoginActivity.this, MyPackagesActivity.class);
             startActivity(i);
             finish();
         }
-
     }
-
 
     private void validate(){
         // get username and password
         USER=userName.getText().toString();
         PASSWORD=password.getText().toString();
-        // if username entry is empts
+        // if username entry is empty
         if (TextUtils.isEmpty(USER)) {
-            Toast.makeText(getApplicationContext(), getString(R.string.missingUsername), Toast.LENGTH_SHORT).show();
+            userName.setError(getString(R.string.missingUsername));
             return;
         }
 
-        // if password doesnt meet requirements
+        // if password doesn't meet requirements
         if (PASSWORD.length() < 6) {
-            Toast.makeText(getApplicationContext(), getString(R.string.loginError), Toast.LENGTH_SHORT).show();
+            password.setError(getString(R.string.loginError));
             return;
         }
 
@@ -113,7 +106,7 @@ public class LoginActivity extends AppCompatActivity {
                         // If sign in fails, display a message to the user.
                         if (!task.isSuccessful()) {
                             Toast.makeText(LoginActivity.this, getString(R.string.loginError), Toast.LENGTH_LONG).show();
-                        } //end if not successfule
+                        } //end if not successful
 
                         // else sign in successful login to app
                         else {
@@ -122,7 +115,7 @@ public class LoginActivity extends AppCompatActivity {
                             finish();
                         } //end if successful
                     } // end on complete authentification
-                }); // end firebase user authentification
+                }); // end firebase user authentication
     } //end validate function
 
 

@@ -2,66 +2,8 @@ package shipshapedevices.shipshape_v0;
 
 
 import android.app.Dialog;
-import android.content.Context;
-import android.nfc.Tag;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
-import java.text.DateFormat;
-import java.util.Date;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import io.realm.Realm;
-import io.realm.RealmList;
-import io.realm.RealmResults;
-
-import android.content.Intent;
-import android.graphics.Point;
-import android.media.MediaPlayer;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Looper;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
-import java.util.List;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.SupplicantState;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.widget.EditText;
-import com.google.android.gms.common.api.CommonStatusCodes;
-import com.google.android.gms.vision.barcode.Barcode;
-import shipshapedevices.shipshape_v0.barcode.BarcodeCaptureActivity;
-
-
-
-
-import android.app.Dialog;
-import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Point;
@@ -74,11 +16,16 @@ import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,7 +34,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.content.Context;
 
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -101,8 +47,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.w3c.dom.Text;
-
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
@@ -112,15 +56,13 @@ import butterknife.ButterKnife;
 import co.moonmonkeylabs.realmrecyclerview.RealmRecyclerView;
 import io.realm.Realm;
 import io.realm.RealmBasedRecyclerViewAdapter;
-import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.RealmViewHolder;
 import io.realm.Sort;
 import shipshapedevices.shipshape_v0.barcode.BarcodeCaptureActivity;
 
-import static shipshapedevices.shipshape_v0.R.id.addPckgBtn;
-
-public class MyPackagesActivity extends RealmBaseActivity {
+public class MyPackagesActivity extends RealmBaseActivity
+        implements NavigationView.OnNavigationItemSelectedListener  {
 
     private static final String LOG_TAG = AddPckgActivity.class.getSimpleName();
     private static final int BARCODE_READER_REQUEST_CODE = 1;
@@ -148,9 +90,6 @@ public class MyPackagesActivity extends RealmBaseActivity {
     String networkSSID, URL, packageID;
 
 
-
-
-
     private String userName;
     private static final String TAG="MyPackagesActivity";
     private PackageRecyclerViewAdapter packageAdapter;
@@ -162,9 +101,7 @@ public class MyPackagesActivity extends RealmBaseActivity {
     @BindView(R.id.realm_recycler_view)
     RealmRecyclerView realmRecyclerView;
     @BindView(R.id.addPckgBtn)
-    Button addPckgBtn;
-    @BindView(R.id.addPckgText)
-    EditText addPckgText;
+    FloatingActionButton addPckgBtn;
     private boolean PackageExists;
     private static boolean PackageLinked=false;
 
@@ -175,11 +112,23 @@ public class MyPackagesActivity extends RealmBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_nav);
+        ButterKnife.bind(this);
+
+        // Navigation view things
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
         // Get instance off of firebase database
         userRef= FirebaseDatabase.getInstance().getReference("users"); //
         packagesRef= FirebaseDatabase.getInstance().getReference("parcels");
-        setContentView(R.layout.activity_my_packages);
-        ButterKnife.bind(this);
         realm = Realm.getDefaultInstance();
         RealmResults<Parcel> realmResults = realm.where(Parcel.class).findAll();
         firebase = FirebaseDatabase.getInstance().getReference();
@@ -210,14 +159,11 @@ public class MyPackagesActivity extends RealmBaseActivity {
                 //TODO startActivity(new Intent(getApplicationContext(), MyPackagesActivity.class));
             }
 
-
-
-            // when a packaage has been changed notify the shippers it was reveived
+            // when a package has been changed notify the shippers it was reveived
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 Log.d(TAG, "The updated post title is: " + dataSnapshot.getValue());
                 //TODO CreateNotification("Packaged Received");
-
             }
 
             // if a child is removed all we need to do is update UI
@@ -236,63 +182,12 @@ public class MyPackagesActivity extends RealmBaseActivity {
         }); // End on Child Event listener
 
 
-
-
-        // add package button queries to see if a package currenlty exists
+        // add package button queries to see if a package currently exists
         addPckgBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                PackageExists=false; //reset flag seeing if package exists
-                //TODO test for scanning
-                Intent intent = new Intent(getApplicationContext(), BarcodeCaptureActivity.class);
-                startActivityForResult(intent, BARCODE_READER_REQUEST_CODE);
-                //get from scan
-                addPackageParcelID=packageID;//addPckgText.getText().toString();
-                Log.d(TAG, "Parcel ID Searching for: " + addPackageParcelID);
-
-                // check to see if package already exists. if it does than we are the receiver. if not than we are shipper
-                packagesRef.orderByChild("parcelID").equalTo(addPackageParcelID).addValueEventListener(new ValueEventListener(){
-                @Override
-                    public void onDataChange(DataSnapshot dataSnapshot){
-                        Log.d(TAG, "Parcel Found: " + dataSnapshot.getValue());
-
-                        // if package doesnt exist create package
-                        if(dataSnapshot.getValue()==null){
-                            Log.d(TAG, "Package doesnt exist finished query. ");
-                            // create package
-
-
-
-                            CreateDialog dialog = new CreateDialog(MyPackagesActivity.this);
-                            dialog.show();
-                    }
-
-                        // else package already exists
-                        else {
-                            Log.d(TAG, "Package exists finished query. ");
-
-                        }
-                    } // end on data changed
-
-
-
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-
-                }); // end value event listener
-
-
-                //change to add parcel activity
-                //Intent i = new Intent(getApplicationContext(), AddPckgActivity.class);
-                //include the sync state
-                //Log.d(TAG,"Entering add package activity.");
-                //startActivity(i);
-
-
-
-
+                //start the code scan
+                startQRscan();
             } // end on add pckg button clicked
         }); // end on add pckg button click listener
 
@@ -349,7 +244,7 @@ public class MyPackagesActivity extends RealmBaseActivity {
 
 
 
-    /* ***************************************************************************************
+    /****************************************************************************************
     !!!!!!!!!!!!!!!!!!!!!!!!!! ACTIVITY: ON DESTROY,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ***************************************************************************************** */
 
@@ -361,9 +256,9 @@ public class MyPackagesActivity extends RealmBaseActivity {
 
     } // end activity on destroy
 
-    /* ***************************************************************************************
-!!!!!!!!!!!!!!!!!!!!!!!!!! ACTIVITY: ON RESUME,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-***************************************************************************************** */
+    /****************************************************************************************
+    !!!!!!!!!!!!!!!!!!!!!!!!!! ACTIVITY: ON RESUME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ***************************************************************************************** */
     @Override
     protected void onResume() {
         super.onResume();
@@ -372,26 +267,53 @@ public class MyPackagesActivity extends RealmBaseActivity {
             startStopLogging();
             loggingData = false;
             Log.d(LOG, "Started Logging ");
-
         }
-
-
 
     }
 
-
+    /****************************************************************************************
+     !!!!!!!!!!!!!!!!!!!!!!!!!! NAVIGATION DRAWER STUFF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     ***************************************************************************************** */
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
         int id = item.getItemId();
-        Toast.makeText(MyPackagesActivity.this, "Or change this?", Toast.LENGTH_SHORT).show();
-        //return super.onOptionsItemSelected(item);
+
+        if (id == R.id.nav_scan) {
+            // Handle the QR scan action
+            startQRscan();
+        } else if (id == R.id.nav_settings) {
+            //dummy button for now
+
+        } else if (id == R.id.nav_logout) {
+            //sign out
+            FirebaseAuth  mAuthUsers = FirebaseAuth.getInstance();
+            mAuthUsers.signOut();
+            // start Login activity
+            Intent i = new Intent(MyPackagesActivity.this, LoginActivity.class);
+            startActivity(i);
+            // finish this activity
+            finish();
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-
-
     /****************************************************************************************
-    !!!!!!!!!!!!!!!!!!!!!!!!!! FUNCTIONS TO CREATE NEW PARCESLS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    !!!!!!!!!!!!!!!!!!!!!!!!!! FUNCTIONS TO CREATE NEW PARCELS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ***************************************************************************************** */
     // Dialog for data writing/upload interaction
     public class CreateDialog extends Dialog {
@@ -400,7 +322,6 @@ public class MyPackagesActivity extends RealmBaseActivity {
         @BindView(R.id.createTagEntry) TextView createTagEntry;
         @BindView(R.id.createEnterButton) Button createEnterButton;
         @BindView(R.id.createCancelButton) Button createCancelButton;
-
 
         public CreateDialog(@NonNull Context context) {
             super(context);
@@ -424,7 +345,6 @@ public class MyPackagesActivity extends RealmBaseActivity {
                     final String receiverID = createRecIDEntry.getText().toString();
                     final String dataTag = createTagEntry.getText().toString();
                     // If a valid ID & label has been entered
-
 
                     // check to see if it is a valid user
                     userRef.orderByChild("userName").equalTo(receiverID).addListenerForSingleValueEvent(new ValueEventListener(){
@@ -581,15 +501,11 @@ public class MyPackagesActivity extends RealmBaseActivity {
 
 
 
-
-
-
-
-/*   ***************************************************************************************
+/****************************************************************************************
    !!!!!!!!!!!!!!!!!!!!!!!!!! RECYCLER VIEW STUFF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ***************************************************************************************** */
 
-public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Parcel, PackageRecyclerViewAdapter.ViewHolder> {
+    public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Parcel, PackageRecyclerViewAdapter.ViewHolder> {
 
         public PackageRecyclerViewAdapter(
                 Context context,
@@ -599,14 +515,15 @@ public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Pa
 
         public class ViewHolder extends RealmViewHolder {
             public FrameLayout container;
-            public TextView shipperTextView;
             public TextView parcelTextView;
+            public TextView partnerTextView;
 
             public ViewHolder(FrameLayout container) {
                 super(container);
+                // TODO: 6/1/2017 use Butterknife here instead
                 this.container = container;
+                this.partnerTextView = (TextView) container.findViewById(R.id.row_partner_id);
                 this.parcelTextView = (TextView) container.findViewById(R.id.row_parcel_id);
-                this.shipperTextView = (TextView) container.findViewById(R.id.row_shipper_id);
             }
         }
 
@@ -619,8 +536,13 @@ public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Pa
         @Override
         public void onBindRealmViewHolder(ViewHolder viewHolder, int position){
             final Parcel parcel = realmResults.get(position);
+            if(parcel.getShipperID().equals(userName)) { // check to see if you're shipper or receiver and add partner
+                viewHolder.partnerTextView.setText(parcel.getReceiverID()); //TODO: 6/1/2017 check for consistency
+            }
+            else {
+                viewHolder.partnerTextView.setText(parcel.getShipperID());
+            }
             viewHolder.parcelTextView.setText(parcel.getParcelID());
-            viewHolder.shipperTextView.setText(parcel.getShipperID());
             viewHolder.itemView.setOnClickListener(
                     new View.OnClickListener(){
                         @Override
@@ -646,11 +568,50 @@ public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Pa
         } // end on bind realm viewholder
     } // end  recycler view adapter
 
-
-
-    /* ***************************************************************************************
+    /****************************************************************************************
     !!!!!!!!!!!!!!!!!!!!!!!!!! WIFI and Scanning functions,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ***************************************************************************************** */
+
+
+    private void startQRscan(){
+        PackageExists=false; //reset flag seeing if package exists
+        //TODO test for scanning
+        Intent intent = new Intent(getApplicationContext(), BarcodeCaptureActivity.class);
+        startActivityForResult(intent, BARCODE_READER_REQUEST_CODE);
+        //get from scan
+        addPackageParcelID=packageID;
+        Log.d(TAG, "Parcel ID Searching for: " + addPackageParcelID);
+
+        // check to see if package already exists. if it does than we are the receiver. if not than we are shipper
+        packagesRef.orderByChild("parcelID").equalTo(addPackageParcelID).addValueEventListener(new ValueEventListener(){
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot){
+                Log.d(TAG, "Parcel Found: " + dataSnapshot.getValue());
+
+                // if package doesnt exist create package
+                if(dataSnapshot.getValue()==null){
+                    Log.d(TAG, "Package doesnt exist finished query. ");
+                    // create package
+
+
+
+                    CreateDialog dialog = new CreateDialog(MyPackagesActivity.this);
+                    dialog.show();
+                }
+
+                // else package already exists
+                else {
+                    Log.d(TAG, "Package exists finished query. ");
+
+                }
+            } // end on data changed
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+
+        }); // end value event listener
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -698,7 +659,7 @@ public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Pa
 
     }
 
-    public  void initWifi(){
+    public void initWifi(){
         Log.d(LOG, "Wifi is Initialized " );
 
         //set connection filters

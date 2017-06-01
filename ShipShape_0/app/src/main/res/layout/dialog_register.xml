@@ -16,7 +16,7 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Button" />
 
     <EditText
-        android:id="@+id/textedit_name_sign_up"
+        android:id="@+id/textedit_fname_sign_up"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
@@ -24,7 +24,17 @@
         android:layout_marginRight="20dp"
         android:layout_marginLeft="20dp"
         android:inputType="text"
-        android:hint="@string/name_sign_up_text" />
+        android:hint="@string/firstNameHint" />
+
+    <EditText
+        android:id="@+id/textedit_lname_sign_up"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginLeft="20dp"
+        android:inputType="text"
+        android:hint="@string/lastNameHint" />
 
 
     <EditText
@@ -47,7 +57,6 @@
         android:inputType="textPassword"
         android:hint="@string/password_login_text" />
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -58,17 +67,19 @@
 
         <Button
             android:id="@+id/button_cancel_sign_up"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="50"
             android:layout_marginEnd="10dp"
             android:text="@string/cancel_text"/>
 
         <Button
             android:id="@+id/button_ok_sign_up"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="50"
             android:layout_marginStart="10dp"
-            android:text="@string/button_ok_text"/>
+            android:text="@string/registerButton"/>
 
     </LinearLayout>
 

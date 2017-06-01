@@ -1,58 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="100dp"
-    android:paddingLeft="24dp"
-    android:paddingRight="24dp"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:layout_marginBottom="@dimen/activity_vertical_margin"
+    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+    android:layout_marginRight="@dimen/activity_horizontal_margin"
+    android:layout_marginTop="@dimen/activity_vertical_margin">
+
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="150dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="20dp"/>
 
     <!-- **********  User ID Items  ************  -->
-
-    <TextView
-        android:id="@+id/UserID"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="10dp"
-        android:text="@string/userID"
-        android:textSize="25sp"
-        />
-
     <EditText
         android:id="@+id/inputUserID"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/UserID"
         android:layout_marginTop="0dp"
         android:maxLines="1"
-        android:maxLength="20"
         android:inputType="text"
         android:hint="@string/userID"
+        android:drawableStart="@drawable/ic_mail_outline_black_24dp"
+        android:drawablePadding="10dp"
         />
 
     <!-- **********  Password Items ************  -->
-
-    <TextView
-        android:id="@+id/Password"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/inputUserID"
-        android:layout_marginTop="25dp"
-        android:text="@string/password"
-        android:textSize="25sp"
-        />
 
     <EditText
         android:id="@+id/inputPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/Password"
         android:layout_marginTop="0dp"
         android:inputType="textPassword"
         android:maxLines="1"
         android:maxLength="50"
         android:hint="@string/password"
+        android:drawableStart="@drawable/ic_lock_outline_black_24dp"
+        android:drawablePadding="10dp"
+        />
+    <!-- **********  Login Button ************  -->
+
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/loginButton"
         />
 
     <!-- **********  Register Button ************  -->
@@ -61,23 +60,9 @@
         android:id="@+id/signUpLink"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="50dp"
-        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
         android:text="@string/SignUpLink"
         android:clickable="true"
         />
 
-    <!-- **********  Login Button ************  -->
-
-    <Button
-        android:id="@+id/loginButton"
-        android:layout_width="100dp"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/signUpLink"
-        android:layout_marginBottom="30dp"
-        android:layout_centerHorizontal="true"
-        android:text="@string/loginButton"
-        />
-
-</RelativeLayout>
+</LinearLayout>

@@ -11,39 +11,34 @@
     <string name="username_exists_toast">Username Already Exists</string>
 
     <!-- ************  Login & Sign Up Activity **************  -->
-    <string name="userID">Username</string>
+    <string name="userID">User Email</string>
     <string name="password">Password</string>
     <string name="loginButton">Login</string>
     <string name="SignUpLink">New User? Sign Up Here  </string>
-    <string name="loginError">Incorrect Username or Password</string>
-    <string name="missingUsername">Please Enter a Username</string>
+    <string name="loginError">Incorrect Email or Password</string>
+    <string name="missingUsername">Please Enter an Email</string>
 
     <!-- ************ Sign Up Activity **************  -->
     <string name="fullName">Full Name</string>
     <string name="firstNameHint">First Name</string>
     <string name="lastNameHint">Last Name</string>
-    <string name="userNameHint">6&#8211;20 Characters</string>
+    <string name="userNameHint">User Email</string>
     <string name="passwordHint">Password</string>
     <string name="verifyHint">Verify Password</string>
-    <string name="userName">Usernamce</string>
+    <string name="userName">Email</string>
     <string name="signUpButton">Create Account</string>
     <string name="LoginLink">Already a User? Login Here  </string>
     <string name="signUpBlanks">Please Complete Missing Entries </string>
     <string name="signUpPasswordError">Please Verify Passwords </string>
     <string name="signUpComplete">YOU\'RE ALL SIGNED UP </string>
+    <string name="registerButton">Create Account </string>
 
-
-    <string name="my_password"></string>
-    <string name="my_username"></string>
-    <string name="password_unsuccessful_toast">Incorrect Password</string>
-    <string name="username_does_not_exist_toast">Username Does Not Exist </string>
-    <string name="unsuccessful_toast">Incorrect Username</string>
-    <string name="successful_toast">Welcome!</string>
-
-    <string name="please_enter_name_toast">Please Enter Name</string>
-    <string name="please_enter_username_toast">Please Enter Username</string>
-    <string name="please_enter_password_toast">Please Enter Password</string>
-    <string name="password_to_short_toast">Password is to short</string>
+    <!--Navigation Drawer Strings-->
+    <string name="nav_scan_title">Scan New Package</string>
+    <string name="nav_settings_title">Settings</string>
+    <string name="nav_logout_title">Log Out</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="button_sign_out_text">Sign Out</string>
     <string name="cancel_text">Cancel</string>

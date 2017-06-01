@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="shipshapedevices.shipshape_v0.MyPackagesActivity">
+    tools:context="shipshapedevices.shipshape_v0.MyPackagesActivity"
+    android:layout_marginBottom="@dimen/activity_vertical_margin"
+    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+    android:layout_marginRight="@dimen/activity_horizontal_margin"
+    android:layout_marginTop="@dimen/activity_vertical_margin">
 
     <co.moonmonkeylabs.realmrecyclerview.RealmRecyclerView
         android:id="@+id/realm_recycler_view"
@@ -18,28 +21,14 @@
 
     </co.moonmonkeylabs.realmrecyclerview.RealmRecyclerView>
 
-    <Button
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/addPckgBtn"
-
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="add Package"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentStart="true" />
+        android:layout_gravity="end|bottom"
+        android:layout_margin="@dimen/fab_margin"
+        app:srcCompat="@drawable/ic_linked_camera_black_24dp" />
 
-    <EditText
-        android:id="@+id/addPckgText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/addPckgBtn"
-        android:layout_alignParentStart="true"
-        android:hint="Enter Parcel ID"
-        android:layout_weight="1"
-        android:inputType="text"
-        android:maxLength="20"
-        android:maxLines="1" />
-
-
-</RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>
 
 
