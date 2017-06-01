@@ -14,9 +14,9 @@ public class Data extends RealmObject {
     // Empty constructor for Realm
     public Data(){}
 
-    public Data(double v,long t) {
+    public Data(double v,float t) {
         value = (float) v;
-        time = (float) t;
+        time =  t;
     }
 
     public float getValue() {

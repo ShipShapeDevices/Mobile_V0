@@ -142,13 +142,16 @@ public class MyPackagesActivity extends RealmBaseActivity {
     boolean gettingPackage = false;
     boolean parseData = false;
     boolean loggingData = false;
+    boolean dataReady = false;
     //String packageID = "testPackage";
     //String URL = "192.168.4.1";
 
     String networkSSID, URL, packageID;
+    boolean gettingPackageID = false;
 
-
-
+    private RealmList<Data> impactOne;
+    private RealmList<Data> tempLog;
+    private RealmList<Data> humidLog;
 
 
     private String userName;
@@ -246,42 +249,8 @@ public class MyPackagesActivity extends RealmBaseActivity {
                 //TODO test for scanning
                 Intent intent = new Intent(getApplicationContext(), BarcodeCaptureActivity.class);
                 startActivityForResult(intent, BARCODE_READER_REQUEST_CODE);
-                //get from scan
-                addPackageParcelID=packageID;//addPckgText.getText().toString();
-                Log.d(TAG, "Parcel ID Searching for: " + addPackageParcelID);
-
-                // check to see if package already exists. if it does than we are the receiver. if not than we are shipper
-                packagesRef.orderByChild("parcelID").equalTo(addPackageParcelID).addValueEventListener(new ValueEventListener(){
-                @Override
-                    public void onDataChange(DataSnapshot dataSnapshot){
-                        Log.d(TAG, "Parcel Found: " + dataSnapshot.getValue());
-
-                        // if package doesnt exist create package
-                        if(dataSnapshot.getValue()==null){
-                            Log.d(TAG, "Package doesnt exist finished query. ");
-                            // create package
 
 
-
-                            CreateDialog dialog = new CreateDialog(MyPackagesActivity.this);
-                            dialog.show();
-                    }
-
-                        // else package already exists
-                        else {
-                            Log.d(TAG, "Package exists finished query. ");
-
-                        }
-                    } // end on data changed
-
-
-
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-
-                }); // end value event listener
 
 
                 //change to add parcel activity
@@ -368,12 +337,60 @@ public class MyPackagesActivity extends RealmBaseActivity {
     protected void onResume() {
         super.onResume();
 
-        if (loggingData){
-            startStopLogging();
-            loggingData = false;
-            Log.d(LOG, "Started Logging ");
+//        if (loggingData){
+//            startStopLogging();
+//            loggingData = false;
+//            Log.d(LOG, "Started Logging ");
+//
+//        }
+        if (gettingPackageID){
+            //clear flag
+            gettingPackageID = false;
+            //get from scan
+            addPackageParcelID=packageID;//addPckgText.getText().toString();
+            Log.d(TAG, "Parcel ID Searching for: " + addPackageParcelID);
+        // check to see if package already exists. if it does than we are the receiver. if not than we are shipper
+        packagesRef.orderByChild("parcelID").equalTo(addPackageParcelID).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(TAG, "Parcel Found: " + dataSnapshot.getValue());
 
-        }
+                // if package doesnt exist create package
+                if (dataSnapshot.getValue() == null) {
+                    Log.d(TAG, "Package doesnt exist finished query. ");
+                    // create package
+
+
+                    CreateDialog dialog = new CreateDialog(MyPackagesActivity.this);
+                    dialog.show();
+
+
+                }
+
+                // else package already exists
+                else {
+                    Log.d(TAG, "Package exists finished query. ");
+
+                    //start wifi and send data to pull in data
+                    if (loggingData) {
+                        startStopLogging();
+                        loggingData = false;
+                        Log.d(LOG, "Started Logging ");
+
+                    }
+
+                }
+            } // end on data changed
+
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+
+        }); // end value event listener
+
+
+    }
 
 
 
@@ -456,6 +473,13 @@ public class MyPackagesActivity extends RealmBaseActivity {
 
                                     addToParcels(p);
 
+                                //start wifi and send data to start logging
+                                if (loggingData){
+                                    startStopLogging();
+                                    loggingData = false;
+                                    Log.d(LOG, "Started Logging ");
+
+                                }
 
                                     //Dismiss the dialog
                                     dismiss();
@@ -502,13 +526,18 @@ public class MyPackagesActivity extends RealmBaseActivity {
 
 
     private void writeNewParcelToRealm(Parcel p){
+        Log.d(TAG,"Write to Realm: ");
+
         //open a new transaction with the realm db
         realm.beginTransaction();
         //check to confirm it doesn't already exist
+
+        //realm.copyToRealmOrUpdate(p);
+
         RealmResults<Parcel> copies = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findAll();
         if(copies.isEmpty()){
             //add it to realm
-            realm.copyToRealm(p);
+            realm.copyToRealmOrUpdate(p);
         }
         else{
             Toast toast = Toast.makeText(getApplicationContext(),"Package Already Exists in Realm", Toast.LENGTH_SHORT);
@@ -671,6 +700,7 @@ public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Pa
                     URL = QRArray[1];
                     packageID = QRArray[2];
                     loggingData = true;
+                    gettingPackageID = true;
                     if(networkSSID.equals("ShipShapeWIFI")) {
                         Toast.makeText(this, networkSSID, Toast.LENGTH_SHORT).show();
                     }
@@ -741,8 +771,31 @@ public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Pa
 
                                 if ((ssid.equals(currentSSID) ||  ssid.equals("eduroam"))&& firstReConnect ) {
                                     Log.e(LOG, " --REConnected Update Firebase --- " + " SSID " + ssid);
-                                    //TODO update firebase call
-                                    // do subroutines here
+
+                                    if (dataReady) {
+                                        //TODO update firebase call
+                                        // do subroutines here
+                                        String dataTag = packageID;
+                                        // If a valid ID has been entered
+
+                                        // Begin scanning
+                                        // TODO: 5/16/2017
+
+                                        // Create a new parcel (realm object)
+                                        Parcel p = new Parcel(dataTag);
+                                        p.setReceiverID(userName); // TODO: 5/17/2017 confirm receiver ID on scan
+                                        String currentTime = DateFormat.getDateTimeInstance().format(new Date());
+                                        p.setReceiveDate(currentTime);
+                                        // Add the data logs to the parcel
+                                        p.writeImpactEvent(impactOne);
+                                        p.writeTempLog(tempLog);
+                                        p.writeHumidLog(humidLog);
+                                        // Update the parcel in Realm & Firebase
+                                        updateParcels(p);
+
+
+                                        dataReady = false;
+                                    }
                                     firstReConnect = false;
 
 
@@ -766,6 +819,13 @@ public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Pa
                 if (data != null) {
                     Log.d(LOG, "We CONNECTED and got: " + data);
 
+                    if (data.toString().contains("logging")) {
+                        Log.d(LOG, "End Connection " + data);
+                        parseData = false;
+                        myAsync.disconnect();
+                        disconnectShipShape();
+                        firstConnect = true;
+                    }
                     if (data.toString().contains("end")) {
                         Log.d(LOG, "End Connection " + data);
                         parseData = false;
@@ -777,8 +837,19 @@ public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Pa
                     if (parseData){
                         Log.d(LOG, "We CONNECTED and got: " + data);
                         DataString = data.split(delimiter);
-                        float curr = Float.parseFloat(DataString[0]);
+                        float time = Float.parseFloat(DataString[0]);
+                        float humid = Float.parseFloat(DataString[1]);
+                        float temp = Float.parseFloat(DataString[2]);
+                        float accel = Float.parseFloat(DataString[3]);
                         //TODO save to realm
+
+                        impactOne.add(new Data(accel,time));
+                        tempLog.add(new Data(temp,time));
+                        humidLog.add(new Data(humid,time));
+
+
+
+
                     }
 
                     if (gettingPackage){
@@ -794,7 +865,13 @@ public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Pa
                     }
                     if (data.toString().contains("start")) {
                         parseData = true;
+                        dataReady = true;
                         gettingPackage = false;
+                        //set buffers
+                        impactOne = new RealmList<>();
+                        tempLog = new RealmList<>();
+                        humidLog = new RealmList<>();
+
                         Log.d(LOG, "getting package: " + data);
 
                     }
@@ -875,4 +952,116 @@ public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Pa
             }
         }
     }
+
+    /* ***************************************************************************************
+    !!!!!!!!!!!!!!!!!!!!!!!!!! ADD DATA,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ***************************************************************************************** */
+
+
+    private void updateParcels(Parcel p){
+        //update item in Realm
+        Parcel updatedP = updateParcelsInRealm(p);
+        //update item in Firebase
+        if (firebase != null) {
+            updateParcelsInFirebase(updatedP); //also sets the FbKey for parcel
+            Log.d(TAG,"parcel updated in firebase with key: "+p.getFirebaseID());
+        }
+    }
+
+    private Parcel updateParcelsInRealm(Parcel p){
+        //open a new transaction with the realm db
+        realm.beginTransaction();
+        //check to confirm it doesn't already exist
+        Log.d(TAG,"looking locally for parcel Id: " + p.getParcelID());
+        Parcel existingP = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findFirst();
+        if(existingP != null) {
+            Log.d(TAG,"linked package found");
+            p.setReceiveDate(existingP.getReceiveDate());
+            p.setShipperID(existingP.getShipperID());
+            p.setFirebaseID(existingP.getFirebaseID());
+            realm.copyToRealmOrUpdate(p);
+        }
+        else{
+            Log.d(TAG,"no linked package found");
+            Toast toast = Toast.makeText(getApplicationContext(),"Package Does Not Exist", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+//        RealmResults<Parcel> copies = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findAll();
+//        if(copies.isEmpty()){
+//            //send warning that package doesn't exist
+//            Log.d(TAG,"no linked package found");
+//            Toast toast = Toast.makeText(getApplicationContext(),"Package Does Not Exist", Toast.LENGTH_SHORT);
+//            toast.show();
+//        }
+//        else{
+//            //copy existing data from existing parcel
+//            Log.d(TAG,"linked package found");
+//            Parcel existingP = copies.get(0);
+//            p.setShipDate(existingP.getShipDate());
+//            p.setShipperID(existingP.getShipperID());
+//            p.setFirebaseID(existingP.getFirebaseID());
+//            realm.copyToRealmOrUpdate(p);
+//        }
+        //close the transaction with the realm db
+        realm.commitTransaction();
+
+        return p;
+    }
+
+    private void updateParcelsInFirebase(Parcel p){
+        //update the parcel in firebase using its key
+        String updateID = p.getFirebaseID();
+        String shipperID = p.getShipperID();
+        Log.d(TAG,"writing parcel to Firebase with fb Id: " + updateID);
+        packagesRef.child(updateID).setValue(p).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Parcel updated", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+        //update parcel status to users // TODO: 5/17/2017 update instead of overwriting parcel references
+        userRef.child(userName).child(updateID).setValue(new ParcelReference(p.getFirebaseID(),"Receiver","Received")).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            Log.d(TAG,"Added to receiver");
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+        userRef.child(shipperID).child(updateID).setValue(new ParcelReference(p.getFirebaseID(),"Shipper","Received")).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            Log.d(TAG,"Added to shipper");
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+    }
+
+
 } //end my packages activity
