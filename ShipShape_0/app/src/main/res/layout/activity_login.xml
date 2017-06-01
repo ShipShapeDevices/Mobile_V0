@@ -1,62 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="top"
-    tools:context="shipshapedevices.shipshape_v0.MainActivity">
+    android:paddingTop="100dp"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:orientation="vertical" >
+
+    <!-- **********  User ID Items  ************  -->
+
+    <TextView
+        android:id="@+id/UserID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
+        android:text="@string/userID"
+        android:textSize="25sp"
+        />
 
     <EditText
-        android:id="@+id/textedit_username_login"
+        android:id="@+id/inputUserID"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginLeft="20dp"
-        android:inputType="textEmailAddress"
-        android:hint="@string/username_login_text" />
+        android:layout_below="@id/UserID"
+        android:layout_marginTop="0dp"
+        android:maxLines="1"
+        android:maxLength="20"
+        android:inputType="text"
+        android:hint="@string/userID"
+        />
+
+    <!-- **********  Password Items ************  -->
+
+    <TextView
+        android:id="@+id/Password"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/inputUserID"
+        android:layout_marginTop="25dp"
+        android:text="@string/password"
+        android:textSize="25sp"
+        />
 
     <EditText
-        android:id="@+id/textedit_password_login"
+        android:id="@+id/inputPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginRight="20dp"
-        android:layout_marginLeft="20dp"
+        android:layout_below="@id/Password"
+        android:layout_marginTop="0dp"
         android:inputType="textPassword"
-        android:hint="@string/password_login_text" />
+        android:maxLines="1"
+        android:maxLength="50"
+        android:hint="@string/password"
+        />
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- **********  Register Button ************  -->
+
+    <TextView
+        android:id="@+id/signUpLink"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_horizontal"
-        android:weightSum="2">
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="50dp"
+        android:layout_centerHorizontal="true"
+        android:text="@string/SignUpLink"
+        android:clickable="true"
+        />
 
-        <Button
-            android:id="@+id/button_sign_up"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_marginTop="20dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginLeft="20dp"
-            android:text="@string/button_sign_up_text" />
+    <!-- **********  Login Button ************  -->
 
-        <Button
-            android:id="@+id/button_login"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginTop="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginLeft="10dp"
-            android:text="@string/button_login_text" />
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/signUpLink"
+        android:layout_marginBottom="30dp"
+        android:layout_centerHorizontal="true"
+        android:text="@string/loginButton"
+        />
 
-
-
-
-    </LinearLayout>
-
-</LinearLayout>
+</RelativeLayout>

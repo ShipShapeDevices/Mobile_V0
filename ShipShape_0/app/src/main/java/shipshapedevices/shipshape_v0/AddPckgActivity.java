@@ -2,6 +2,7 @@ package shipshapedevices.shipshape_v0;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -26,7 +27,64 @@ import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmResults;
 
+import android.content.Intent;
+import android.graphics.Point;
+import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Looper;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+import java.util.List;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.SupplicantState;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.widget.EditText;
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.vision.barcode.Barcode;
+import shipshapedevices.shipshape_v0.barcode.BarcodeCaptureActivity;
+
+
 public class AddPckgActivity extends AppCompatActivity {
+
+    private static final String LOG_TAG = AddPckgActivity.class.getSimpleName();
+    private static final int BARCODE_READER_REQUEST_CODE = 1;
+
+    String delimiter = ", ";
+    String[] QRArray = new String[3];
+    String[] DataString = new String[4];
+    //String networkSSID = "ShipShapeWIFI";
+    String currentSSID;
+    WifiManager wifiManager;
+    AsyncConnection myAsync;
+    ConnectionHandler myConnectionHandler;
+    BroadcastReceiver broadcastReceiver;
+    IntentFilter intentFilter;
+    String LOG = "MainActivity";
+    boolean firstConnect = true;
+    boolean firstReConnect = true;
+    boolean connectionReady = false;
+    boolean gettingPackage = false;
+    boolean parseData = false;
+    boolean loggingData = false;
+    //String packageID = "testPackage";
+    //String URL = "192.168.4.1";
+
+    String networkSSID, URL, packageID;
+
+
 
     private static final String TAG = "AddPckgActivity";
     private Realm realm;
@@ -66,11 +124,20 @@ public class AddPckgActivity extends AppCompatActivity {
         fireDB = FirebaseDatabase.getInstance();
         parcelRef = fireDB.getReference().child("parcels");
         userRef = fireDB.getReference().child("users");
+
+        //set up wifi connection
+        initWifi();
+        registerReceiver(broadcastReceiver, intentFilter);
+
+
+
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
 
         //initialize realm for the activity
         realm = Realm.getDefaultInstance();
@@ -82,9 +149,12 @@ public class AddPckgActivity extends AppCompatActivity {
             public void onClick(View view) {
                 // Open a dialog for data upload
                 CreateDialog dialog = new CreateDialog(AddPckgActivity.this);
+
                 dialog.show();
                 // Start the NFC write process
                 // TODO: 5/17/2017
+
+
             }
         });
 
@@ -94,11 +164,25 @@ public class AddPckgActivity extends AppCompatActivity {
             public void onClick(View view) {
                 // Start the NFC read process
                 // TODO: 5/16/2017
+
+
                 // Open a dialog for data upload
+
+
                 ScanDialog dialog = new ScanDialog(AddPckgActivity.this);
                 dialog.show();
             }
         });
+
+        if (loggingData){
+            startStopLogging();
+            loggingData = false;
+            Log.d(LOG, "Started Logging ");
+
+        }
+
+
+
     }
 
     @Override
@@ -107,6 +191,8 @@ public class AddPckgActivity extends AppCompatActivity {
         Log.d(TAG,"destroying activity");
         //close realm instance
         realm.close();
+        unregisterReceiver(broadcastReceiver);
+
     }
 
     private void addToParcels(Parcel p){
@@ -140,6 +226,8 @@ public class AddPckgActivity extends AppCompatActivity {
         String receiverID = p.getReceiverID();
         //get a key from Firebase for the new parcel
         String newKey = parcelRef.push().getKey();
+        //updated package id to send to device
+        packageID = newKey;
         //store the key locally
         p.setFirebaseID(newKey);
         //add the new parcel to firebase using the key
@@ -269,7 +357,7 @@ public class AddPckgActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if(task.isSuccessful()){
-                            //do nothing
+                            Log.d(TAG,"Added to receiver");
                         }
                         else{
                             //display error toast
@@ -284,7 +372,7 @@ public class AddPckgActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if(task.isSuccessful()){
-                            //do nothing
+                            Log.d(TAG,"Added to shipper");
                         }
                         else{
                             //display error toast
@@ -405,6 +493,9 @@ public class AddPckgActivity extends AppCompatActivity {
                         p.setShipDate(currentTime);
                         // Add the parcel to Realm & Firebase
                         addToParcels(p);
+                        //TODO test for scanning
+                        Intent intent = new Intent(getApplicationContext(), BarcodeCaptureActivity.class);
+                        startActivityForResult(intent, BARCODE_READER_REQUEST_CODE);
                         // Dismiss the dialog
                         dismiss();
                     }
@@ -428,8 +519,11 @@ public class AddPckgActivity extends AppCompatActivity {
                 }
             });
         }
-    }
-    
+    } // end create dialog
+
+
+
+
     // Dialog for data scanning/upload interaction
     public class ScanDialog extends Dialog {
         // Link views
@@ -497,5 +591,238 @@ public class AddPckgActivity extends AppCompatActivity {
                 }
             });
         }
+
+
+
+
+
     }
+     /* ***************************************************************************************
+    !!!!!!!!!!!!!!!!!!!!!!!!!! WIFI and Scanning functions,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ***************************************************************************************** */
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == BARCODE_READER_REQUEST_CODE) {
+            if (resultCode == CommonStatusCodes.SUCCESS) {
+                if (data != null) {
+                    Barcode barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
+                    try {
+                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                        Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                        r.play();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Point[] p = barcode.cornerPoints;
+                    QRArray = barcode.displayValue.split(delimiter);
+                    networkSSID = QRArray[0];
+                    URL = QRArray[1];
+                    //packageID = QRArray[2];
+                    loggingData = true;
+                    if(networkSSID.equals("ShipShapeWIFI")) {
+                        Toast.makeText(this, networkSSID, Toast.LENGTH_SHORT).show();
+                    }
+                    if(URL.equals("192.168.4.1")) {
+                        Toast.makeText(this, URL, Toast.LENGTH_SHORT).show();
+                    }
+                    Toast.makeText(this, packageID, Toast.LENGTH_SHORT).show();
+                } else {
+                    //do nothing
+                }
+            } else Log.e(LOG_TAG, String.format(getString(R.string.barcode_error_format),
+                    CommonStatusCodes.getStatusCodeString(resultCode)));
+        } else super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+    public void startStopLogging(){
+
+
+        Log.d(LOG, "Clicked" );
+        //set package id and url before connecting
+        //packageID= "my ship package";
+        //URL = "192.168.4.1";
+        connectShipShape( );
+
+    }
+
+    public  void initWifi(){
+        Log.d(LOG, "Wifi is Initialized " );
+
+        //set connection filters
+        intentFilter =new
+
+                IntentFilter();
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        //create broadcast receiver
+        broadcastReceiver =new
+
+                BroadcastReceiver() {
+                    @Override
+                    public void onReceive (Context context, Intent intent){
+                        ConnectivityManager conMan = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                        NetworkInfo networkInfo = conMan.getActiveNetworkInfo();
+                        if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                            if (networkInfo != null) {
+                                // Wifi is connected
+                                WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+                                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                                //get ssid
+                                Log.d(LOG, "Wifi is connected: " + String.valueOf(networkInfo));
+                                boolean isConnected = networkInfo != null && networkInfo.isConnectedOrConnecting();
+                                String ssid = wifiInfo.getSSID();
+                                if (ssid.equals("\"" + networkSSID + "\"") && firstConnect && connectionReady) {
+                                    Log.e(LOG, " --SHip SHape --- " + " SSID " + ssid);
+                                    myAsync = new AsyncConnection(URL, 80,packageID, 100000, myConnectionHandler);
+                                    myAsync.execute();
+                                    // do subroutines here
+                                    firstConnect = false;
+                                    firstReConnect = true;
+
+
+                                } else if (!connectionReady) {
+                                    //do nothing
+                                } else {
+                                    Log.e(LOG, " -- Wifi connected now --- ");
+                                    firstConnect = true;
+                                }
+
+                                if ((ssid.equals(currentSSID) ||  ssid.equals("eduroam"))&& firstReConnect ) {
+                                    Log.e(LOG, " --REConnected Update Firebase --- " + " SSID " + ssid);
+                                    //TODO update firebase call
+                                    // do subroutines here
+                                    firstReConnect = false;
+
+
+                                }else{
+                                    firstReConnect = true;
+
+                                }
+
+
+                                Log.e(LOG, " -- Wifi connected now --- " + " SSID " + ssid);
+                            }
+                        }
+
+
+                    }
+                };
+// TODO Auto-generated method stub
+        myConnectionHandler = new ConnectionHandler() {
+            @Override
+            public void didReceiveData(String data) {
+                if (data != null) {
+                    Log.d(LOG, "We CONNECTED and got: " + data);
+
+                    if (data.toString().contains("end")) {
+                        Log.d(LOG, "End Connection " + data);
+                        parseData = false;
+                        gettingPackage = false;
+                        myAsync.disconnect();
+                        disconnectShipShape();
+                        firstConnect = true;
+                    }
+                    if (parseData){
+                        Log.d(LOG, "We CONNECTED and got: " + data);
+                        DataString = data.split(delimiter);
+                        float curr = Float.parseFloat(DataString[0]);
+                        //TODO save to realm
+                    }
+
+                    if (gettingPackage){
+                        //TODO  package is data value
+                        //packageID = data;
+                        Log.d(LOG, "package ID: " + data);
+
+                        gettingPackage = false;
+                    }
+                    if (data.toString().contains("packageID")) {
+                        gettingPackage = true;
+                        parseData = false;
+                    }
+                    if (data.toString().contains("start")) {
+                        parseData = true;
+                        gettingPackage = false;
+                        Log.d(LOG, "getting package: " + data);
+
+                    }
+
+
+                }
+
+            }
+
+            @Override
+            public void didDisconnect(Exception error) {
+                Log.d(LOG, "DisCONNECTED");
+            }
+
+            @Override
+            public void didConnect() {
+                Log.d(LOG, "We CONNECTED");
+            }
+        };
+
+
+    }
+    public void disconnectShipShape() {
+        wifiManager = (WifiManager) AddPckgActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+        //Log.i("list", "connected" + list);
+        // reconnect to old network
+        for (WifiConfiguration i : list) {
+            if (i.SSID != null && i.SSID.equals(currentSSID)) {
+                wifiManager.disconnect();
+                wifiManager.enableNetwork(i.networkId, true);
+                wifiManager.reconnect();
+                Log.i(LOG, "Stanford connected");
+                firstReConnect = true;
+                break;
+            }else
+            {
+                wifiManager.disconnect();
+
+            }
+        }
+        connectionReady = false;
+    }
+
+    public void connectShipShape() {
+        wifiManager = (WifiManager) AddPckgActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiConfiguration conf = new WifiConfiguration();
+        //get info for current wifi
+        WifiInfo wifiInfo;
+        wifiInfo = wifiManager.getConnectionInfo();
+        if (wifiInfo.getSupplicantState() == SupplicantState.COMPLETED) {
+
+            currentSSID = wifiInfo.getSSID();
+            Log.i(LOG, "got current ssid:" + currentSSID);
+
+        }
+
+
+        conf.SSID = "\"" + networkSSID + "\"";
+        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+
+
+        wifiManager.addNetwork(conf);
+
+        List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+        //Log.i("list", "connected" + list);
+
+        for (WifiConfiguration i : list) {
+            if (i.SSID != null && i.SSID.equals("\"" + networkSSID + "\"")) {
+                wifiManager.disconnect();
+                wifiManager.enableNetwork(i.networkId, true);
+                wifiManager.reconnect();
+                Log.i(LOG, "connected");
+                connectionReady = true;
+                break;
+
+            }
+        }
+    }
+
 }

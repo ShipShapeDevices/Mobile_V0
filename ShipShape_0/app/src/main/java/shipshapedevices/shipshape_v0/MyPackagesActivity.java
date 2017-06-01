@@ -1,6 +1,80 @@
 package shipshapedevices.shipshape_v0;
 
+
+import android.app.Dialog;
+import android.content.Context;
+import android.nfc.Tag;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.text.DateFormat;
+import java.util.Date;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import io.realm.Realm;
+import io.realm.RealmList;
+import io.realm.RealmResults;
+
 import android.content.Intent;
+import android.graphics.Point;
+import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Looper;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+import java.util.List;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.SupplicantState;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.widget.EditText;
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.vision.barcode.Barcode;
+import shipshapedevices.shipshape_v0.barcode.BarcodeCaptureActivity;
+
+
+
+
+import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Point;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
+import android.net.wifi.SupplicantState;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
@@ -8,20 +82,30 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.Context;
 
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.vision.barcode.Barcode;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.w3c.dom.Text;
 
+import java.text.DateFormat;
 import java.util.Date;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -32,32 +116,194 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.RealmViewHolder;
 import io.realm.Sort;
+import shipshapedevices.shipshape_v0.barcode.BarcodeCaptureActivity;
+
+import static shipshapedevices.shipshape_v0.R.id.addPckgBtn;
 
 public class MyPackagesActivity extends RealmBaseActivity {
 
+    private static final String LOG_TAG = AddPckgActivity.class.getSimpleName();
+    private static final int BARCODE_READER_REQUEST_CODE = 1;
+
+    String delimiter = ", ";
+    String[] QRArray = new String[3];
+    String[] DataString = new String[4];
+    //String networkSSID = "ShipShapeWIFI";
+    String currentSSID;
+    WifiManager wifiManager;
+    AsyncConnection myAsync;
+    ConnectionHandler myConnectionHandler;
+    BroadcastReceiver broadcastReceiver;
+    IntentFilter intentFilter;
+    String LOG = "MainActivity";
+    boolean firstConnect = true;
+    boolean firstReConnect = true;
+    boolean connectionReady = false;
+    boolean gettingPackage = false;
+    boolean parseData = false;
+    boolean loggingData = false;
+    //String packageID = "testPackage";
+    //String URL = "192.168.4.1";
+
+    String networkSSID, URL, packageID;
+
+
+
+
+
+    private String userName;
+    private static final String TAG="MyPackagesActivity";
     private PackageRecyclerViewAdapter packageAdapter;
     private Realm realm;
     private DatabaseReference firebase;
-
+    private DatabaseReference userRef;
+    private DatabaseReference packagesRef;
+    private String addPackageParcelID;
     @BindView(R.id.realm_recycler_view)
     RealmRecyclerView realmRecyclerView;
+    @BindView(R.id.addPckgBtn)
+    Button addPckgBtn;
+    @BindView(R.id.addPckgText)
+    EditText addPckgText;
+    private boolean PackageExists;
+    private static boolean PackageLinked=false;
+
+    /****************************************************************************************
+     !!!!!!!!!!!!!!!!!!!!!!!!!! ACTIVITY: ON CREATE,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ***************************************************************************************** */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Get instance off of firebase database
+        userRef= FirebaseDatabase.getInstance().getReference("users"); //
+        packagesRef= FirebaseDatabase.getInstance().getReference("parcels");
         setContentView(R.layout.activity_my_packages);
         ButterKnife.bind(this);
         realm = Realm.getDefaultInstance();
         RealmResults<Parcel> realmResults = realm.where(Parcel.class).findAll();
         firebase = FirebaseDatabase.getInstance().getReference();
+        userName = FirebaseAuth.getInstance().getCurrentUser().getEmail().replace('.',',');
 
         //clear realm
-//        realm.beginTransaction();
-//        realmResults.deleteAllFromRealm();
-//        realm.commitTransaction();
+        //        realm.beginTransaction();
+        //        realmResults.deleteAllFromRealm();
+        //        realm.commitTransaction();
+
+        //  Add button listeners
+        // Add Package Option:
 
 
-        firebase.child("parcels").addChildEventListener(new ChildEventListener() {
+        RealmResults<Parcel> parcels = realm.where(Parcel.class).findAllSorted("parcelID", Sort.ASCENDING);
+        packageAdapter = new PackageRecyclerViewAdapter(getBaseContext(), parcels);
+        realmRecyclerView.setAdapter(packageAdapter);
+
+        userRef.child(userName).addChildEventListener(new ChildEventListener() {
+            @Override
+
+            // when a child is added notify receivers that the package has shipped
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Log.d(TAG, "The added child was: "+dataSnapshot.getValue());
+                dataSnapshot.getValue();
+
+                //TODOCreateNotification("Create Notification Test String");
+                //TODO startActivity(new Intent(getApplicationContext(), MyPackagesActivity.class));
+            }
+
+
+
+            // when a packaage has been changed notify the shippers it was reveived
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Log.d(TAG, "The updated post title is: " + dataSnapshot.getValue());
+                //TODO CreateNotification("Packaged Received");
+
+            }
+
+            // if a child is removed all we need to do is update UI
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+
+        }); // End on Child Event listener
+
+
+
+
+        // add package button queries to see if a package currenlty exists
+        addPckgBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PackageExists=false; //reset flag seeing if package exists
+                //TODO test for scanning
+                Intent intent = new Intent(getApplicationContext(), BarcodeCaptureActivity.class);
+                startActivityForResult(intent, BARCODE_READER_REQUEST_CODE);
+                //get from scan
+                addPackageParcelID=packageID;//addPckgText.getText().toString();
+                Log.d(TAG, "Parcel ID Searching for: " + addPackageParcelID);
+
+                // check to see if package already exists. if it does than we are the receiver. if not than we are shipper
+                packagesRef.orderByChild("parcelID").equalTo(addPackageParcelID).addValueEventListener(new ValueEventListener(){
+                @Override
+                    public void onDataChange(DataSnapshot dataSnapshot){
+                        Log.d(TAG, "Parcel Found: " + dataSnapshot.getValue());
+
+                        // if package doesnt exist create package
+                        if(dataSnapshot.getValue()==null){
+                            Log.d(TAG, "Package doesnt exist finished query. ");
+                            // create package
+
+
+
+                            CreateDialog dialog = new CreateDialog(MyPackagesActivity.this);
+                            dialog.show();
+                    }
+
+                        // else package already exists
+                        else {
+                            Log.d(TAG, "Package exists finished query. ");
+
+                        }
+                    } // end on data changed
+
+
+
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+
+                }); // end value event listener
+
+
+                //change to add parcel activity
+                //Intent i = new Intent(getApplicationContext(), AddPckgActivity.class);
+                //include the sync state
+                //Log.d(TAG,"Entering add package activity.");
+                //startActivity(i);
+
+
+
+
+            } // end on add pckg button clicked
+        }); // end on add pckg button click listener
+
+
+
+
+
+
+
+
+        /*firebase.child("parcels").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
@@ -92,17 +338,47 @@ public class MyPackagesActivity extends RealmBaseActivity {
 
             }
         });
+        */
 
-        RealmResults<Parcel> parcels = realm.where(Parcel.class).findAllSorted("parcelID", Sort.ASCENDING);
-        packageAdapter = new PackageRecyclerViewAdapter(getBaseContext(), parcels);
-        realmRecyclerView.setAdapter(packageAdapter);
-    }
+
+        //set up wifi connection
+        initWifi();
+        registerReceiver(broadcastReceiver, intentFilter);
+
+    } // END ACITVITY ON CREATE
+
+
+
+    /* ***************************************************************************************
+    !!!!!!!!!!!!!!!!!!!!!!!!!! ACTIVITY: ON DESTROY,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ***************************************************************************************** */
 
     @Override
     protected void onDestroy(){
         super.onDestroy();
         realm.close();
+        unregisterReceiver(broadcastReceiver);
+
+    } // end activity on destroy
+
+    /* ***************************************************************************************
+!!!!!!!!!!!!!!!!!!!!!!!!!! ACTIVITY: ON RESUME,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+***************************************************************************************** */
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (loggingData){
+            startStopLogging();
+            loggingData = false;
+            Log.d(LOG, "Started Logging ");
+
+        }
+
+
+
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -112,7 +388,208 @@ public class MyPackagesActivity extends RealmBaseActivity {
         return true;
     }
 
-    public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Parcel, PackageRecyclerViewAdapter.ViewHolder> {
+
+
+    /****************************************************************************************
+    !!!!!!!!!!!!!!!!!!!!!!!!!! FUNCTIONS TO CREATE NEW PARCESLS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ***************************************************************************************** */
+    // Dialog for data writing/upload interaction
+    public class CreateDialog extends Dialog {
+        // Link views
+        @BindView(R.id.createRecIDEntry) EditText createRecIDEntry;
+        @BindView(R.id.createTagEntry) TextView createTagEntry;
+        @BindView(R.id.createEnterButton) Button createEnterButton;
+        @BindView(R.id.createCancelButton) Button createCancelButton;
+
+
+        public CreateDialog(@NonNull Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setTitle("Create new package");
+            //createRecIDEntry.setText("hello"); TODO check the receiver to see if itsa  valid user
+            setCancelable(true);
+            // Link the dialog layout
+            setContentView(R.layout.dialog_create);
+            // Bind views
+            ButterKnife.bind(this);
+
+            // If user clicks "Enter" button in dialog =>
+            createEnterButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    final String receiverID = createRecIDEntry.getText().toString();
+                    final String dataTag = createTagEntry.getText().toString();
+                    // If a valid ID & label has been entered
+
+
+                    // check to see if it is a valid user
+                    userRef.orderByChild("userName").equalTo(receiverID).addListenerForSingleValueEvent(new ValueEventListener(){
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot){
+                            Log.d(TAG, "User Found: " + dataSnapshot.getValue());
+                            // if not a vaild user create a toast
+                            if(dataSnapshot.getValue()==null){
+                                Log.d(TAG, "Not a vaild User. ");
+                                /// Populate toast with warning
+                                String unlockToastText = "Please Enter a valid receiver for the package";
+                                // Show toast
+                                Toast toast = Toast.makeText(getApplicationContext(), unlockToastText, Toast.LENGTH_SHORT);
+                                toast.show();
+                            }
+
+                            // else user is valid
+                            else {
+
+                                    Log.d(TAG, "Receiver Exists creating parcel. ");
+                                    // Create a new parcel (realm object)
+                                    Parcel p = new Parcel(dataTag);
+                                    p.setShipperID(userName);
+                                    p.setReceiverID(receiverID); // TODO: 5/17/2017 send notification to receiver
+                                    String currentTime = DateFormat.getDateTimeInstance().format(new Date());
+                                    p.setShipDate(currentTime);
+                                    p.setParcelID(addPackageParcelID);
+                                    // Add the parcel to Realm & Firebase
+
+                                    addToParcels(p);
+
+
+                                    //Dismiss the dialog
+                                    dismiss();
+
+                                }
+
+
+                        } // end on data changed
+
+
+
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                        }
+
+                    }); // end value event listener
+
+                }
+            });
+
+            //If user clicks the "Cancel" button in the dialog =>
+            createCancelButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //dismiss the dialog
+                    dismiss();
+                }
+            });
+        }
+    } // end create dialog
+
+
+
+    private void addToParcels(Parcel p){
+        //add new item to Firebase
+        if (firebase != null) {
+            writeNewParcelToFirebase(p); //also sets the FbKey for parcel
+            Log.d(TAG,"parcel written to firebase with key: "+p.getFirebaseID());
+        }
+        //add new item to Realm
+        writeNewParcelToRealm(p);
+    }
+
+
+    private void writeNewParcelToRealm(Parcel p){
+        //open a new transaction with the realm db
+        realm.beginTransaction();
+        //check to confirm it doesn't already exist
+        RealmResults<Parcel> copies = realm.where(Parcel.class).equalTo("parcelID",p.getParcelID()).findAll();
+        if(copies.isEmpty()){
+            //add it to realm
+            realm.copyToRealm(p);
+        }
+        else{
+            Toast toast = Toast.makeText(getApplicationContext(),"Package Already Exists in Realm", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+        //close the transaction with the realm db
+        realm.commitTransaction();
+    }
+
+    private void writeNewParcelToFirebase(Parcel p){
+        String receiverID = p.getReceiverID().replace('.',',');
+        //get a key from Firebase for the new parcel
+        String newKey = packagesRef.push().getKey();
+        //store the key locally
+        //updated package id to send to device
+
+
+        p.setFirebaseID(newKey);
+        //add the new parcel to firebase using the key
+        packagesRef.child(newKey).setValue(p).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //do nothing
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+        //add parcel ID to users
+        userRef.child(userName).child(newKey).setValue(new ParcelReference(newKey,"Shipper","Shipped")).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //do nothing
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+
+
+        userRef.child(receiverID).child(newKey).setValue(new ParcelReference(newKey,"Receiver","Shipped")).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //do nothing
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+    }
+
+
+
+
+
+
+
+
+/*   ***************************************************************************************
+   !!!!!!!!!!!!!!!!!!!!!!!!!! RECYCLER VIEW STUFF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ***************************************************************************************** */
+
+public class PackageRecyclerViewAdapter extends RealmBasedRecyclerViewAdapter<Parcel, PackageRecyclerViewAdapter.ViewHolder> {
 
         public PackageRecyclerViewAdapter(
                 Context context,
@@ -160,10 +637,242 @@ public class MyPackagesActivity extends RealmBaseActivity {
                                 //display error toast
                                 Toast toast = Toast.makeText(getApplicationContext(),"Parcel contains no data.", Toast.LENGTH_SHORT);
                                 toast.show();
+                            } // end else no data in parcetl
+
+                        }
+                    } // end on click listener
+            ); // end set on click listener
+
+        } // end on bind realm viewholder
+    } // end  recycler view adapter
+
+
+
+    /* ***************************************************************************************
+    !!!!!!!!!!!!!!!!!!!!!!!!!! WIFI and Scanning functions,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    ***************************************************************************************** */
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == BARCODE_READER_REQUEST_CODE) {
+            if (resultCode == CommonStatusCodes.SUCCESS) {
+                if (data != null) {
+                    Barcode barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
+                    try {
+                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                        Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                        r.play();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    Point[] p = barcode.cornerPoints;
+                    QRArray = barcode.displayValue.split(delimiter);
+                    networkSSID = QRArray[0];
+                    URL = QRArray[1];
+                    packageID = QRArray[2];
+                    loggingData = true;
+                    if(networkSSID.equals("ShipShapeWIFI")) {
+                        Toast.makeText(this, networkSSID, Toast.LENGTH_SHORT).show();
+                    }
+                    if(URL.equals("192.168.4.1")) {
+                        Toast.makeText(this, URL, Toast.LENGTH_SHORT).show();
+                    }
+                    Toast.makeText(this, packageID, Toast.LENGTH_SHORT).show();
+                } else {
+                    //do nothing
+                }
+            } else Log.e(LOG_TAG, String.format(getString(R.string.barcode_error_format),
+                    CommonStatusCodes.getStatusCodeString(resultCode)));
+        } else super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+    public void startStopLogging(){
+
+
+        Log.d(LOG, "Clicked" );
+        //set package id and url before connecting
+        //packageID= "my ship package";
+        //URL = "192.168.4.1";
+        connectShipShape( );
+
+    }
+
+    public  void initWifi(){
+        Log.d(LOG, "Wifi is Initialized " );
+
+        //set connection filters
+        intentFilter =new
+
+                IntentFilter();
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        //create broadcast receiver
+        broadcastReceiver =new
+
+                BroadcastReceiver() {
+                    @Override
+                    public void onReceive (Context context, Intent intent){
+                        ConnectivityManager conMan = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                        NetworkInfo networkInfo = conMan.getActiveNetworkInfo();
+                        if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+                            if (networkInfo != null) {
+                                // Wifi is connected
+                                WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+                                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                                //get ssid
+                                Log.d(LOG, "Wifi is connected: " + String.valueOf(networkInfo));
+                                boolean isConnected = networkInfo != null && networkInfo.isConnectedOrConnecting();
+                                String ssid = wifiInfo.getSSID();
+                                if (ssid.equals("\"" + networkSSID + "\"") && firstConnect && connectionReady) {
+                                    Log.e(LOG, " --SHip SHape --- " + " SSID " + ssid);
+                                    myAsync = new AsyncConnection(URL, 80,packageID, 100000, myConnectionHandler);
+                                    myAsync.execute();
+                                    // do subroutines here
+                                    firstConnect = false;
+                                    firstReConnect = true;
+
+
+                                } else if (!connectionReady) {
+                                    //do nothing
+                                } else {
+                                    Log.e(LOG, " -- Wifi connected now --- ");
+                                    firstConnect = true;
+                                }
+
+                                if ((ssid.equals(currentSSID) ||  ssid.equals("eduroam"))&& firstReConnect ) {
+                                    Log.e(LOG, " --REConnected Update Firebase --- " + " SSID " + ssid);
+                                    //TODO update firebase call
+                                    // do subroutines here
+                                    firstReConnect = false;
+
+
+                                }else{
+                                    firstReConnect = true;
+
+                                }
+
+
+                                Log.e(LOG, " -- Wifi connected now --- " + " SSID " + ssid);
                             }
                         }
+
+
                     }
-            );
+                };
+// TODO Auto-generated method stub
+        myConnectionHandler = new ConnectionHandler() {
+            @Override
+            public void didReceiveData(String data) {
+                if (data != null) {
+                    Log.d(LOG, "We CONNECTED and got: " + data);
+
+                    if (data.toString().contains("end")) {
+                        Log.d(LOG, "End Connection " + data);
+                        parseData = false;
+                        gettingPackage = false;
+                        myAsync.disconnect();
+                        disconnectShipShape();
+                        firstConnect = true;
+                    }
+                    if (parseData){
+                        Log.d(LOG, "We CONNECTED and got: " + data);
+                        DataString = data.split(delimiter);
+                        float curr = Float.parseFloat(DataString[0]);
+                        //TODO save to realm
+                    }
+
+                    if (gettingPackage){
+                        //TODO  package is data value
+                        //packageID = data;
+                        Log.d(LOG, "package ID: " + data);
+
+                        gettingPackage = false;
+                    }
+                    if (data.toString().contains("packageID")) {
+                        gettingPackage = true;
+                        parseData = false;
+                    }
+                    if (data.toString().contains("start")) {
+                        parseData = true;
+                        gettingPackage = false;
+                        Log.d(LOG, "getting package: " + data);
+
+                    }
+
+
+                }
+
+            }
+
+            @Override
+            public void didDisconnect(Exception error) {
+                Log.d(LOG, "DisCONNECTED");
+            }
+
+            @Override
+            public void didConnect() {
+                Log.d(LOG, "We CONNECTED");
+            }
+        };
+
+
+    }
+    public void disconnectShipShape() {
+        wifiManager = (WifiManager) MyPackagesActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+        //Log.i("list", "connected" + list);
+        // reconnect to old network
+        for (WifiConfiguration i : list) {
+            if (i.SSID != null && i.SSID.equals(currentSSID)) {
+                wifiManager.disconnect();
+                wifiManager.enableNetwork(i.networkId, true);
+                wifiManager.reconnect();
+                Log.i(LOG, "Stanford connected");
+                firstReConnect = true;
+                break;
+            }else
+            {
+                wifiManager.disconnect();
+
+            }
+        }
+        connectionReady = false;
+    }
+
+    public void connectShipShape() {
+        wifiManager = (WifiManager) MyPackagesActivity.this.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiConfiguration conf = new WifiConfiguration();
+        //get info for current wifi
+        WifiInfo wifiInfo;
+        wifiInfo = wifiManager.getConnectionInfo();
+        if (wifiInfo.getSupplicantState() == SupplicantState.COMPLETED) {
+
+            currentSSID = wifiInfo.getSSID();
+            Log.i(LOG, "got current ssid:" + currentSSID);
+
+        }
+
+
+        conf.SSID = "\"" + networkSSID + "\"";
+        conf.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+
+
+        wifiManager.addNetwork(conf);
+
+        List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+        //Log.i("list", "connected" + list);
+
+        for (WifiConfiguration i : list) {
+            if (i.SSID != null && i.SSID.equals("\"" + networkSSID + "\"")) {
+                wifiManager.disconnect();
+                wifiManager.enableNetwork(i.networkId, true);
+                wifiManager.reconnect();
+                Log.i(LOG, "connected");
+                connectionReady = true;
+                break;
+
+            }
         }
     }
-}
+} //end my packages activity

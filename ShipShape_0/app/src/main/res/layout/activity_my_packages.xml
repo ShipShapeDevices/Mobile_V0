@@ -10,9 +10,36 @@
     <co.moonmonkeylabs.realmrecyclerview.RealmRecyclerView
         android:id="@+id/realm_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="450dp"
+        android:layout_alignParentTop="true"
         app:rrvIsRefreshable="true"
         app:rrvLayoutType="LinearLayout"
-        app:rrvSwipeToDelete="true"
-        />
+        app:rrvSwipeToDelete="true">
+
+    </co.moonmonkeylabs.realmrecyclerview.RealmRecyclerView>
+
+    <Button
+        android:id="@+id/addPckgBtn"
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="add Package"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true" />
+
+    <EditText
+        android:id="@+id/addPckgText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/addPckgBtn"
+        android:layout_alignParentStart="true"
+        android:hint="Enter Parcel ID"
+        android:layout_weight="1"
+        android:inputType="text"
+        android:maxLength="20"
+        android:maxLines="1" />
+
+
 </RelativeLayout>
+
+

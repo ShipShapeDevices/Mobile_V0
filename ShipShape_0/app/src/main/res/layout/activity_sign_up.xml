@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="35dp"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:orientation="vertical" >
+
+    <!-- **********  Name  Items  ************  -->
+
+    <TextView
+        android:id="@+id/fullName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
+        android:text="@string/fullName"
+        android:textSize="20sp"
+
+        />
+    <!-- **********  Child linear layout Entering name  ************  -->
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/NameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/fullName"
+        android:layout_marginTop="0dp"
+        >
+
+        <EditText
+            android:id="@+id/firstNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:maxLines="1"
+            android:maxLength="20"
+            android:inputType="text"
+            android:layout_weight="1"
+            android:hint="@string/firstNameHint"
+            android:nextFocusDown="@+id/lastNameInput"
+            />
+
+        <EditText
+            android:id="@+id/lastNameInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/firstNameInput"
+            android:layout_marginTop="0dp"
+            android:maxLines="1"
+            android:maxLength="20"
+            android:inputType="text"
+            android:layout_weight="1"
+            android:hint="@string/lastNameHint"
+            />
+
+    </LinearLayout>
+    <!-- **********  User Name Items ************  -->
+
+    <TextView
+        android:id="@+id/userNameText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/NameLayout"
+        android:layout_marginTop="10dp"
+        android:text="@string/userName"
+        android:textSize="20sp"
+        />
+
+    <EditText
+        android:id="@+id/userNameInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/userNameText"
+        android:layout_marginTop="0dp"
+        android:inputType="text"
+        android:maxLines="1"
+        android:maxLength="20"
+        android:hint="@string/userNameHint"
+        />
+
+
+    <!-- ********** Password Items ************  -->
+
+    <TextView
+        android:id="@+id/passwordText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/userNameInput"
+        android:layout_marginTop="10dp"
+        android:text= "@string/password"
+        android:textSize="20sp"
+        />
+
+    <EditText
+        android:id="@+id/passwordInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/passwordText"
+        android:layout_marginTop="0dp"
+        android:maxLines="1"
+        android:maxLength="20"
+        android:inputType="textPassword"
+        android:hint="@string/passwordHint"
+        />
+
+    <EditText
+        android:id="@+id/passwordVerifyInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/passwordInput"
+        android:layout_marginTop="0dp"
+        android:maxLines="1"
+        android:maxLength="20"
+        android:inputType="textPassword"
+        android:hint="@string/verifyHint"
+        />
+
+
+
+
+    <!-- **********  Login Link ************  -->
+
+    <TextView
+        android:id="@+id/loginLink"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="50dp"
+        android:layout_centerHorizontal="true"
+        android:text="@string/LoginLink"
+        android:clickable="true"
+        android:textSize="15sp"
+        />
+
+
+    <!-- **********  Sign UP Button ************  -->
+    <Button
+        android:id="@+id/signUpButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/loginLink"
+        android:layout_marginBottom="30dp"
+        android:layout_centerHorizontal="true"
+        android:text="@string/signUpButton"
+        />
+
+</RelativeLayout>

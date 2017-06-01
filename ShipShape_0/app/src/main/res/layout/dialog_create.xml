@@ -13,10 +13,10 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:inputType="text"
-        android:text="P6s1lRreruejXdTWVa7crHiQSGO2"
+        android:text="receiver@ship.com"
         android:hint="Enter intended receiver ID" />
 
-    <EditText
+    <TextView
         android:id="@+id/createTagEntry"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -39,10 +39,10 @@
         <Button
             android:id="@+id/createCancelButton"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:hint="Cancel"/>
+            android:layout_weight="0.80"
+            android:hint="Cancel"
+            android:textAlignment="center" />
 
     </LinearLayout>
 

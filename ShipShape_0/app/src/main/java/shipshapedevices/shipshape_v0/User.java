@@ -9,6 +9,7 @@ import io.realm.RealmObject;
 
 public class User extends RealmObject {
     private String userID;
+    private String UserName;
     private RealmList<ParcelReference> packages;
 
     public User(){}
@@ -23,6 +24,14 @@ public class User extends RealmObject {
 
     public void setUserID(String userID) {
         this.userID = userID;
+    }
+
+    public String getUserName() {
+        return UserName;
+    }
+
+    public void setUserName(String UserName) {
+        this.UserName = UserName;
     }
 
     public RealmList<ParcelReference> getPackages() {
