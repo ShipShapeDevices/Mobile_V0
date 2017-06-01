@@ -28,19 +28,11 @@ public class ShipShapeApplication extends Application {
                 .build();
         Realm.setDefaultConfiguration(realmConfig);
         // Killing all realm data up-front for testing // TODO: 5/17/2017 remove this when needed
-<<<<<<< HEAD
-//        realm = Realm.getDefaultInstance();
-//        realm.beginTransaction();
-//        realm.deleteAll();
-//        realm.commitTransaction();
-=======
         //realm = Realm.getDefaultInstance();
         //realm.beginTransaction();
         //realm.deleteAll();
         //realm.commitTransaction();
 
-
->>>>>>> e33129136d786a9b4dbd27c93a6c7b503bce35d6
     }
 }
 

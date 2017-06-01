@@ -56,6 +56,7 @@ import butterknife.ButterKnife;
 import co.moonmonkeylabs.realmrecyclerview.RealmRecyclerView;
 import io.realm.Realm;
 import io.realm.RealmBasedRecyclerViewAdapter;
+import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.RealmViewHolder;
 import io.realm.Sort;
@@ -91,13 +92,9 @@ public class MyPackagesActivity extends RealmBaseActivity
     String networkSSID, URL, packageID;
     boolean gettingPackageID = false;
 
-<<<<<<< HEAD
-=======
     private RealmList<Data> impactOne;
     private RealmList<Data> tempLog;
     private RealmList<Data> humidLog;
-
->>>>>>> e33129136d786a9b4dbd27c93a6c7b503bce35d6
 
     private String userName;
     private static final String TAG="MyPackagesActivity";
@@ -195,36 +192,10 @@ public class MyPackagesActivity extends RealmBaseActivity
         addPckgBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-<<<<<<< HEAD
                 //start the code scan
                 startQRscan();
-=======
-                PackageExists=false; //reset flag seeing if package exists
-                //TODO test for scanning
-                Intent intent = new Intent(getApplicationContext(), BarcodeCaptureActivity.class);
-                startActivityForResult(intent, BARCODE_READER_REQUEST_CODE);
-
-
-
-
-                //change to add parcel activity
-                //Intent i = new Intent(getApplicationContext(), AddPckgActivity.class);
-                //include the sync state
-                //Log.d(TAG,"Entering add package activity.");
-                //startActivity(i);
-
-
-
-
->>>>>>> e33129136d786a9b4dbd27c93a6c7b503bce35d6
             } // end on add pckg button clicked
         }); // end on add pckg button click listener
-
-
-
-
-
-
 
 
         /*firebase.child("parcels").addChildEventListener(new ChildEventListener() {
@@ -292,19 +263,6 @@ public class MyPackagesActivity extends RealmBaseActivity
     protected void onResume() {
         super.onResume();
 
-<<<<<<< HEAD
-        if (loggingData){
-            startStopLogging();
-            loggingData = false;
-            Log.d(LOG, "Started Logging ");
-        }
-=======
-//        if (loggingData){
-//            startStopLogging();
-//            loggingData = false;
-//            Log.d(LOG, "Started Logging ");
-//
-//        }
         if (gettingPackageID){
             //clear flag
             gettingPackageID = false;
@@ -353,7 +311,6 @@ public class MyPackagesActivity extends RealmBaseActivity
 
 
     }
->>>>>>> e33129136d786a9b4dbd27c93a6c7b503bce35d6
 
     }
 
@@ -676,39 +633,7 @@ public class MyPackagesActivity extends RealmBaseActivity
         //TODO test for scanning
         Intent intent = new Intent(getApplicationContext(), BarcodeCaptureActivity.class);
         startActivityForResult(intent, BARCODE_READER_REQUEST_CODE);
-        //get from scan
-        addPackageParcelID=packageID;
-        Log.d(TAG, "Parcel ID Searching for: " + addPackageParcelID);
 
-        // check to see if package already exists. if it does than we are the receiver. if not than we are shipper
-        packagesRef.orderByChild("parcelID").equalTo(addPackageParcelID).addValueEventListener(new ValueEventListener(){
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot){
-                Log.d(TAG, "Parcel Found: " + dataSnapshot.getValue());
-
-                // if package doesnt exist create package
-                if(dataSnapshot.getValue()==null){
-                    Log.d(TAG, "Package doesnt exist finished query. ");
-                    // create package
-
-
-
-                    CreateDialog dialog = new CreateDialog(MyPackagesActivity.this);
-                    dialog.show();
-                }
-
-                // else package already exists
-                else {
-                    Log.d(TAG, "Package exists finished query. ");
-
-                }
-            } // end on data changed
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-
-        }); // end value event listener
     }
 
     @Override
