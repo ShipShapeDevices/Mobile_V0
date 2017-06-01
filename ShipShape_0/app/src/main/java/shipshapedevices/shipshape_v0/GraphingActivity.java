@@ -55,7 +55,7 @@ public class GraphingActivity extends AppCompatActivity {
     @BindView(R.id.humid_graph)
     LineChart humidChart;
     @BindView(R.id.temp_graph)
-    BarChart tempChart;
+    LineChart tempChart;
     private Realm realm;
     private RealmResults realmResults;
     private RealmList realmList;
@@ -63,7 +63,6 @@ public class GraphingActivity extends AppCompatActivity {
     private RealmResults<ImpactEvent> impactEvents;
     private RealmResults<Data> accelData;
     private RealmResults<Data> humidData;
-    private RealmBarDataSet<Data> barDataSet;
     private RealmLineDataSet<Data> lineDataSet;
 
 
@@ -95,14 +94,14 @@ public class GraphingActivity extends AppCompatActivity {
         accelData = impactEvents.first().getAccelLog().where().findAll();
 
         // create a DataSet and specify fields, MPAndroidChart-Realm does the rest
-        barDataSet = new RealmBarDataSet<>(tempData, "time", "value");
+        lineDataSet = new RealmLineDataSet<>(tempData, "time", "value");
 
         //set label
-        barDataSet.setLabel("Temp Data");
+        lineDataSet.setLabel("Temp Data");
         // create a data object with the dataset
-        BarData barTempData = new BarData(barDataSet);
+        LineData lineTempData = new LineData(lineDataSet);
 
-        tempChart.setData(barTempData);
+        tempChart.setData(lineTempData);
         tempChart.getDescription().setText("Temperature");
         tempChart.animateXY(200, 200);
 
@@ -118,7 +117,6 @@ public class GraphingActivity extends AppCompatActivity {
         humidChart.setData(lineHumidData);
         humidChart.getDescription().setText("Humidity");
         humidChart.animateXY(200, 200);
-
 
         // create a DataSet and specify fields, MPAndroidChart-Realm does the rest
         lineDataSet = new RealmLineDataSet<>(accelData, "time", "value");

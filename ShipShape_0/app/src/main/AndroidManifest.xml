@@ -28,14 +28,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
-            android:label="Main Activity"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".AddPckgActivity"
-            android:label="Add Package Activity"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
             android:name=".GraphingActivity"
             android:label="Statistics"
             android:theme="@style/AppTheme.NoActionBar" />

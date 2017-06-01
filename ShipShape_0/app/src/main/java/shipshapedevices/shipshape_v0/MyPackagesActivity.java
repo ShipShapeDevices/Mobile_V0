@@ -66,7 +66,7 @@ import shipshapedevices.shipshape_v0.barcode.BarcodeCaptureActivity;
 public class MyPackagesActivity extends RealmBaseActivity
         implements NavigationView.OnNavigationItemSelectedListener  {
 
-    private static final String LOG_TAG = AddPckgActivity.class.getSimpleName();
+    private static final String LOG_TAG = MyPackagesActivity.class.getSimpleName();
     private static final int BARCODE_READER_REQUEST_CODE = 1;
 
     String delimiter = ", ";
