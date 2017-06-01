@@ -32,6 +32,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -108,6 +109,7 @@ public class MyPackagesActivity extends RealmBaseActivity
     RealmRecyclerView realmRecyclerView;
     @BindView(R.id.addPckgBtn)
     FloatingActionButton addPckgBtn;
+
     private boolean PackageExists;
     private static boolean PackageLinked=false;
 
@@ -139,6 +141,10 @@ public class MyPackagesActivity extends RealmBaseActivity
         RealmResults<Parcel> realmResults = realm.where(Parcel.class).findAll();
         firebase = FirebaseDatabase.getInstance().getReference();
         userName = FirebaseAuth.getInstance().getCurrentUser().getEmail().replace('.',',');
+
+        View header=navigationView.getHeaderView(0); //add email to nav drawer header
+        TextView email_txt = (TextView)header.findViewById(R.id.email_txt);
+        email_txt.setText(userName.replace(',','.'));
 
         //clear realm
         //        realm.beginTransaction();
@@ -565,11 +571,12 @@ public class MyPackagesActivity extends RealmBaseActivity
         public PackageRecyclerViewAdapter(
                 Context context,
                 RealmResults<Parcel> realmResults) {
-            super(context, realmResults, true, true, false, "parcelID");
+            super(context, realmResults, true, true, false, "receiveDate");
         }
 
         public class ViewHolder extends RealmViewHolder {
             public FrameLayout container;
+            public ImageView dir_icon;
             public TextView parcelTextView;
             public TextView partnerTextView;
 
@@ -577,6 +584,7 @@ public class MyPackagesActivity extends RealmBaseActivity
                 super(container);
                 // TODO: 6/1/2017 use Butterknife here instead
                 this.container = container;
+                this.dir_icon = (ImageView) container.findViewById(R.id.dir_icon);
                 this.partnerTextView = (TextView) container.findViewById(R.id.row_partner_id);
                 this.parcelTextView = (TextView) container.findViewById(R.id.row_parcel_id);
             }
@@ -592,10 +600,12 @@ public class MyPackagesActivity extends RealmBaseActivity
         public void onBindRealmViewHolder(ViewHolder viewHolder, int position){
             final Parcel parcel = realmResults.get(position);
             if(parcel.getShipperID().equals(userName)) { // check to see if you're shipper or receiver and add partner
-                viewHolder.partnerTextView.setText(parcel.getReceiverID()); //TODO: 6/1/2017 check for consistency
+                viewHolder.dir_icon.setImageDrawable(getDrawable(R.drawable.ic_arrow_forward_black_24dp));
+                viewHolder.partnerTextView.setText(parcel.getReceiverID().replace(",","."));
             }
             else {
-                viewHolder.partnerTextView.setText(parcel.getShipperID());
+                viewHolder.dir_icon.setImageDrawable(getDrawable(R.drawable.ic_arrow_back_black_24dp));
+                viewHolder.partnerTextView.setText(parcel.getShipperID().replace(",","."));
             }
             viewHolder.parcelTextView.setText(parcel.getParcelID());
             viewHolder.itemView.setOnClickListener(

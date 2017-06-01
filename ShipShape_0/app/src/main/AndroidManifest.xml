@@ -24,7 +24,6 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -38,11 +37,11 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".GraphingActivity"
-            android:label="Graphing Activity"
+            android:label="Statistics"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".MyPackagesActivity"
-            android:label="My Packages Activity"
+            android:label="My Packages"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".SignUpActivity" />
 
