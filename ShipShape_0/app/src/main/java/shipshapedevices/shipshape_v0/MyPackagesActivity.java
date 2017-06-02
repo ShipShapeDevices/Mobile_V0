@@ -49,6 +49,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -110,6 +111,7 @@ public class MyPackagesActivity extends RealmBaseActivity
     FloatingActionButton addPckgBtn;
     private boolean PackageExists;
     private static boolean PackageLinked=false;
+    ParcelReference parcelData;
 
     /****************************************************************************************
      !!!!!!!!!!!!!!!!!!!!!!!!!! ACTIVITY: ON CREATE,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -136,6 +138,12 @@ public class MyPackagesActivity extends RealmBaseActivity
         userRef= FirebaseDatabase.getInstance().getReference("users"); //
         packagesRef= FirebaseDatabase.getInstance().getReference("parcels");
         realm = Realm.getDefaultInstance();
+        // Killing all realm data up-front for testing // TODO: 5/17/2017 remove this when needed
+        realm.beginTransaction();
+        realm.deleteAll();
+        realm.commitTransaction();
+
+
         RealmResults<Parcel> realmResults = realm.where(Parcel.class).findAll();
         firebase = FirebaseDatabase.getInstance().getReference();
         userName = FirebaseAuth.getInstance().getCurrentUser().getEmail().replace('.',',');
@@ -149,9 +157,7 @@ public class MyPackagesActivity extends RealmBaseActivity
         // Add Package Option:
 
 
-        RealmResults<Parcel> parcels = realm.where(Parcel.class).findAllSorted("parcelID", Sort.ASCENDING);
-        packageAdapter = new PackageRecyclerViewAdapter(getBaseContext(), parcels);
-        realmRecyclerView.setAdapter(packageAdapter);
+
 
         userRef.child(userName).addChildEventListener(new ChildEventListener() {
             @Override
@@ -160,6 +166,56 @@ public class MyPackagesActivity extends RealmBaseActivity
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Log.d(TAG, "The added child was: "+dataSnapshot.getValue());
                 dataSnapshot.getValue();
+                Log.d(TAG, "class: "+dataSnapshot.getValue().getClass().toString());
+                if (dataSnapshot.getValue().getClass().toString().contains("HashMap"))
+                {
+                     parcelData = dataSnapshot.getValue(ParcelReference.class);
+                    //save to realm
+                    realm.beginTransaction();
+                    realm.copyToRealmOrUpdate(parcelData);
+                    realm.commitTransaction();
+                    //notify realm of change
+                    // Find all dinosaurs whose height is exactly 25 meters.
+                    packagesRef.child(parcelData.getParcelID()).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            Log.d(TAG, "Parcel: "+dataSnapshot.getValue());
+                            Log.d(TAG, "Parcel id: "+parcelData.getParcelID());
+
+                            // if package doesnt exist create package
+                            if (dataSnapshot.getValue() == null) {
+                                Log.d(TAG, "Package doesnt exist finished query. ");
+                                // create package
+
+
+                            }
+
+                            // else package already exists
+                            else {
+                                Log.d(TAG, "Package exists finished query. ");
+
+                                Parcel data = dataSnapshot.getValue(Parcel.class);
+                                //save to realm
+                                realm.beginTransaction();
+                                realm.copyToRealmOrUpdate(data);
+                                realm.commitTransaction();
+
+                            }
+                        } // end on data changed
+
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                        }
+
+                    }); // end value event listener
+                }
+
+
+
+
+
 
                 //TODOCreateNotification("Create Notification Test String");
                 //TODO startActivity(new Intent(getApplicationContext(), MyPackagesActivity.class));
@@ -170,6 +226,70 @@ public class MyPackagesActivity extends RealmBaseActivity
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 Log.d(TAG, "The updated post title is: " + dataSnapshot.getValue());
                 //TODO CreateNotification("Packaged Received");
+
+                Log.d(TAG, "The added child was: "+dataSnapshot.getValue());
+                dataSnapshot.getValue();
+                Log.d(TAG, "class: "+dataSnapshot.getValue().getClass().toString());
+                if (dataSnapshot.getValue().getClass().toString().contains("HashMap"))
+                {
+                    parcelData = dataSnapshot.getValue(ParcelReference.class);
+                    //save to realm
+                    realm.beginTransaction();
+                    realm.copyToRealmOrUpdate(parcelData);
+                    realm.commitTransaction();
+                    //notify realm of change
+                    // Find all dinosaurs whose height is exactly 25 meters.
+                    packagesRef.child(parcelData.getParcelID()).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            Log.d(TAG, "Parcel: "+dataSnapshot.getValue());
+                            Log.d(TAG, "Parcel id: "+parcelData.getParcelID());
+
+                            // if package doesnt exist create package
+                            if (dataSnapshot.getValue() == null) {
+                                Log.d(TAG, "Package doesnt exist finished query. ");
+                                // create package
+
+
+                            }
+
+                            // else package already exists
+                            else {
+                                Log.d(TAG, "Package exists finished query. ");
+
+                                Parcel data = dataSnapshot.getValue(Parcel.class);
+                                //save to realm
+                                realm.beginTransaction();
+                                realm.copyToRealmOrUpdate(data);
+                                realm.commitTransaction();
+
+                            }
+                        } // end on data changed
+
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                        }
+
+                    }); // end value event listener
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             }
 
             // if a child is removed all we need to do is update UI
@@ -234,6 +354,10 @@ public class MyPackagesActivity extends RealmBaseActivity
             }
         });
         */
+
+        RealmResults<Parcel> parcels = realm.where(Parcel.class).findAllSorted("parcelID", Sort.ASCENDING);
+        packageAdapter = new PackageRecyclerViewAdapter(getBaseContext(), parcels);
+        realmRecyclerView.setAdapter(packageAdapter);
 
 
         //set up wifi connection
@@ -986,7 +1110,7 @@ public class MyPackagesActivity extends RealmBaseActivity
                 }
         );
         //update parcel status to users // TODO: 5/17/2017 update instead of overwriting parcel references
-        userRef.child(userName).child(updateID).setValue(new ParcelReference(p.getFirebaseID(),"Receiver","Received")).addOnCompleteListener(
+        userRef.child(userName).child(updateID).child("status").setValue("Received").addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -1001,7 +1125,7 @@ public class MyPackagesActivity extends RealmBaseActivity
                     }
                 }
         );
-        userRef.child(shipperID).child(updateID).setValue(new ParcelReference(p.getFirebaseID(),"Shipper","Received")).addOnCompleteListener(
+        userRef.child(shipperID).child(updateID).child("status").setValue("Received").addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {

@@ -1,6 +1,8 @@
 package shipshapedevices.shipshape_v0;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.Required;
 
 /**
  * Created by Luke on 5/17/2017.
@@ -8,7 +10,10 @@ import io.realm.RealmObject;
 
 public class ParcelReference extends RealmObject {
 
+    @PrimaryKey
+    @Required
     private String parcelID;
+
     private String parcelType;
     private String status;
 
