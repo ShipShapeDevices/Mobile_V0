@@ -7,18 +7,19 @@
     android:layout_height="match_parent"
     tools:context="shipshapedevices.shipshape_v0.GraphingActivity">
 
-    <com.github.mikephil.charting.charts.BarChart
-        android:id="@+id/temp_graph"
-        android:layout_width="match_parent"
-        android:layout_height="150dip"  />
+
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/accel_graph"
+        android:layout_width="match_parent"
+        android:layout_height="150dip"
+        android:layout_marginTop="50dp"/>
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/temp_graph"
         android:layout_width="match_parent"
         android:layout_height="150dip"  />
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/humid_graph"
         android:layout_width="match_parent"
         android:layout_height="150dip"  />
-
 
 </LinearLayout>

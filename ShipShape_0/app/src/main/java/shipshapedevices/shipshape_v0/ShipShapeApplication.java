@@ -15,7 +15,6 @@ public class ShipShapeApplication extends Application {
 
     private Realm realm;
 
-
     @Override
     public void onCreate() {
         super.onCreate();

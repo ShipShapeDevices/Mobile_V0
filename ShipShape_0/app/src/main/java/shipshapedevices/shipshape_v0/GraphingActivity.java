@@ -1,51 +1,23 @@
 package shipshapedevices.shipshape_v0;
 
-import android.content.Context;
-import android.graphics.Color;
-import android.graphics.DashPathEffect;
-import android.graphics.Paint;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.ImageView;
-import android.widget.Toast;
+import android.support.v7.app.AppCompatActivity;
 
-import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.AxisBase;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.data.BarData;
-import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-
-import com.github.mikephil.charting.data.realm.implementation.RealmBarDataSet;
 import com.github.mikephil.charting.data.realm.implementation.RealmLineDataSet;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.github.mikephil.charting.formatter.IValueFormatter;
-import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.utils.ViewPortHandler;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.Realm;
-import io.realm.RealmConfiguration;
 import io.realm.RealmList;
 import io.realm.RealmResults;
-import io.realm.RealmSchema;
 
 
 public class GraphingActivity extends AppCompatActivity {
@@ -55,7 +27,7 @@ public class GraphingActivity extends AppCompatActivity {
     @BindView(R.id.humid_graph)
     LineChart humidChart;
     @BindView(R.id.temp_graph)
-    BarChart tempChart;
+    LineChart tempChart;
     private Realm realm;
     private RealmResults realmResults;
     private RealmList realmList;
@@ -63,10 +35,7 @@ public class GraphingActivity extends AppCompatActivity {
     private RealmResults<ImpactEvent> impactEvents;
     private RealmResults<Data> accelData;
     private RealmResults<Data> humidData;
-    private RealmBarDataSet<Data> barDataSet;
     private RealmLineDataSet<Data> lineDataSet;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,17 +64,20 @@ public class GraphingActivity extends AppCompatActivity {
         accelData = impactEvents.first().getAccelLog().where().findAll();
 
         // create a DataSet and specify fields, MPAndroidChart-Realm does the rest
-        barDataSet = new RealmBarDataSet<>(tempData, "time", "value");
+        lineDataSet = new RealmLineDataSet<>(tempData, "time", "value");
 
         //set label
-        barDataSet.setLabel("Temp Data");
+        lineDataSet.setLabel("Temp Data");
         // create a data object with the dataset
-        BarData barTempData = new BarData(barDataSet);
+        LineData lineTempData = new LineData(lineDataSet);
 
-        tempChart.setData(barTempData);
+        tempChart.setData(lineTempData);
         tempChart.getDescription().setText("Temperature");
         tempChart.animateXY(200, 200);
-
+        YAxis tempAxis = tempChart.getAxisLeft();
+        tempAxis.removeAllLimitLines(); // reset all limit lines to avoid overlapping lines
+        tempAxis.setAxisMaximum(100);
+        tempAxis.setAxisMinimum(50);
 
         // create a DataSet and specify fields, MPAndroidChart-Realm does the rest
         lineDataSet = new RealmLineDataSet<>(humidData, "time", "value");
@@ -118,7 +90,10 @@ public class GraphingActivity extends AppCompatActivity {
         humidChart.setData(lineHumidData);
         humidChart.getDescription().setText("Humidity");
         humidChart.animateXY(200, 200);
-
+        YAxis humidAxis = humidChart.getAxisLeft();
+        humidAxis.removeAllLimitLines(); // reset all limit lines to avoid overlapping lines
+        humidAxis.setAxisMaximum(100);
+        humidAxis.setAxisMinimum(20);
 
         // create a DataSet and specify fields, MPAndroidChart-Realm does the rest
         lineDataSet = new RealmLineDataSet<>(accelData, "time", "value");
@@ -131,6 +106,10 @@ public class GraphingActivity extends AppCompatActivity {
         accelChart.setData(lineAccelData);
         accelChart.getDescription().setText("Acceleration");
         accelChart.animateXY(200, 200);
+        YAxis accelAxis = accelChart.getAxisLeft();
+        accelAxis.removeAllLimitLines(); // reset all limit lines to avoid overlapping lines
+        accelAxis.setAxisMaximum(20);
+        accelAxis.setAxisMinimum(-0);
 
         //send data to charts
         accelChart.invalidate(); // refresh
