@@ -114,6 +114,7 @@ public class MyPackagesActivity extends RealmBaseActivity
     private boolean PackageExists;
     private static boolean PackageLinked=false;
     ParcelReference parcelData;
+   private  String receiverID;
 
     /****************************************************************************************
      !!!!!!!!!!!!!!!!!!!!!!!!!! ACTIVITY: ON CREATE,!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -177,9 +178,9 @@ public class MyPackagesActivity extends RealmBaseActivity
                 {
                      parcelData = dataSnapshot.getValue(ParcelReference.class);
                     //save to realm
-                    realm.beginTransaction();
-                    realm.copyToRealmOrUpdate(parcelData);
-                    realm.commitTransaction();
+//                    realm.beginTransaction();
+//                    realm.copyToRealmOrUpdate(parcelData);
+//                    realm.commitTransaction();
                     //notify realm of change
                     // Find all dinosaurs whose height is exactly 25 meters.
                     packagesRef.child(parcelData.getParcelID()).addValueEventListener(new ValueEventListener() {
@@ -201,8 +202,11 @@ public class MyPackagesActivity extends RealmBaseActivity
                             else {
                                 Log.d(TAG, "Package exists finished query. ");
 
-                                Parcel data = dataSnapshot.getValue(Parcel.class);
+                                TempParcel dataTemp = dataSnapshot.getValue(TempParcel.class);
+                                Parcel data = dataTemp.convertForRealm();
                                 //save to realm
+                                //updateParcelsInRealm(data);
+
                                 realm.beginTransaction();
                                 realm.copyToRealmOrUpdate(data);
                                 realm.commitTransaction();
@@ -240,9 +244,9 @@ public class MyPackagesActivity extends RealmBaseActivity
                 {
                     parcelData = dataSnapshot.getValue(ParcelReference.class);
                     //save to realm
-                    realm.beginTransaction();
-                    realm.copyToRealmOrUpdate(parcelData);
-                    realm.commitTransaction();
+//                    realm.beginTransaction();
+//                    realm.copyToRealmOrUpdate(parcelData);
+//                    realm.commitTransaction();
                     //notify realm of change
                     // Find all dinosaurs whose height is exactly 25 meters.
                     packagesRef.child(parcelData.getParcelID()).addValueEventListener(new ValueEventListener() {
@@ -264,11 +268,14 @@ public class MyPackagesActivity extends RealmBaseActivity
                             else {
                                 Log.d(TAG, "Package exists finished query. ");
 
-                                Parcel data = dataSnapshot.getValue(Parcel.class);
+
+                                TempParcel dataTemp = dataSnapshot.getValue(TempParcel.class);
+                                Parcel data = dataTemp.convertForRealm();
                                 //save to realm
-                                realm.beginTransaction();
-                                realm.copyToRealmOrUpdate(data);
-                                realm.commitTransaction();
+                                updateParcelsInRealm(data);
+//                                realm.beginTransaction();
+//                                realm.copyToRealmOrUpdate(data);
+//                                realm.commitTransaction();
 
                             }
                         } // end on data changed
@@ -384,6 +391,7 @@ public class MyPackagesActivity extends RealmBaseActivity
         realm.close();
         unregisterReceiver(broadcastReceiver);
 
+
     } // end activity on destroy
 
     /****************************************************************************************
@@ -392,6 +400,9 @@ public class MyPackagesActivity extends RealmBaseActivity
     @Override
     protected void onResume() {
         super.onResume();
+
+        realm = Realm.getDefaultInstance();
+        RealmResults<Parcel> realmResults = realm.where(Parcel.class).findAll();
 
         if (gettingPackageID){
             //clear flag
@@ -515,7 +526,7 @@ public class MyPackagesActivity extends RealmBaseActivity
             createEnterButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    final String receiverID = createRecIDEntry.getText().toString();
+                    receiverID = createRecIDEntry.getText().toString();
                     final String dataTag = createTagEntry.getText().toString();
                     // If a valid ID & label has been entered
 
@@ -548,6 +559,7 @@ public class MyPackagesActivity extends RealmBaseActivity
                                     // Add the parcel to Realm & Firebase
 
                                     addToParcels(p);
+
 
                                 //start wifi and send data to start logging
                                 if (loggingData){
@@ -626,7 +638,7 @@ public class MyPackagesActivity extends RealmBaseActivity
     private void writeNewParcelToFirebase(Parcel p){
         String receiverID = p.getReceiverID().replace('.',',');
         //get a key from Firebase for the new parcel
-        String newKey = packagesRef.push().getKey();
+        String newKey = packageID;//packagesRef.push().getKey();
         //store the key locally
         //updated package id to send to device
 
@@ -723,36 +735,39 @@ public class MyPackagesActivity extends RealmBaseActivity
         @Override
         public void onBindRealmViewHolder(ViewHolder viewHolder, int position){
             final Parcel parcel = realmResults.get(position);
-            if(parcel.getShipperID().equals(userName)) { // check to see if you're shipper or receiver and add partner
-                viewHolder.dir_icon.setImageDrawable(getDrawable(R.drawable.ic_arrow_forward_black_24dp));
-                viewHolder.partnerTextView.setText(parcel.getReceiverID().replace(",","."));
-            }
-            else {
-                viewHolder.dir_icon.setImageDrawable(getDrawable(R.drawable.ic_arrow_back_black_24dp));
-                viewHolder.partnerTextView.setText(parcel.getShipperID().replace(",","."));
-            }
-            viewHolder.parcelTextView.setText(parcel.getParcelID());
-            viewHolder.itemView.setOnClickListener(
-                    new View.OnClickListener(){
-                        @Override
-                        public void onClick(View v){
-                            // if data exists in parcel
-                            if(!parcel.getTempLog().isEmpty()) {
-                                Intent mypac2stat = new Intent(MyPackagesActivity.this, GraphingActivity.class);
-                                mypac2stat.putExtra("CurrentParcelID", parcel.getParcelID());
-                                startActivity(mypac2stat);
-                                Toast.makeText(MyPackagesActivity.this, parcel.getParcelID(), Toast.LENGTH_SHORT).show();
-                            }
-                            // else if no data exists in parcel
-                            else{
-                                //display error toast
-                                Toast toast = Toast.makeText(getApplicationContext(),"Parcel contains no data.", Toast.LENGTH_SHORT);
-                                toast.show();
-                            } // end else no data in parcetl
+            if (parcel != null) {
+                if (parcel.getShipperID().equals(userName)) { // check to see if you're shipper or receiver and add partner
+                    viewHolder.dir_icon.setImageDrawable(getDrawable(R.drawable.ic_arrow_forward_black_24dp));
+                    viewHolder.partnerTextView.setText(parcel.getReceiverID().replace(",", "."));
+                } else {
+                    viewHolder.dir_icon.setImageDrawable(getDrawable(R.drawable.ic_arrow_back_black_24dp));
+                    viewHolder.partnerTextView.setText(parcel.getShipperID().replace(",", "."));
+                }
+                viewHolder.parcelTextView.setText(parcel.getParcelID());
+                viewHolder.itemView.setOnClickListener(
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                // if data exists in parcel
+                                if (!parcel.getTempLog().isEmpty()) {
+                                    Intent mypac2stat = new Intent(MyPackagesActivity.this, GraphingActivity.class);
+                                    mypac2stat.putExtra("CurrentParcelID", parcel.getParcelID());
+                                    startActivity(mypac2stat);
+                                    Toast.makeText(MyPackagesActivity.this, parcel.getParcelID(), Toast.LENGTH_SHORT).show();
+                                }
+                                // else if no data exists in parcel
+                                else {
+                                    //display error toast
+                                    Toast toast = Toast.makeText(getApplicationContext(), "Parcel contains no data.", Toast.LENGTH_SHORT);
+                                    toast.show();
+                                } // end else no data in parcetl
 
-                        }
-                    } // end on click listener
-            ); // end set on click listener
+                            }
+                        } // end on click listener
+                ); // end set on click listener
+            }else{
+
+            }
 
         } // end on bind realm viewholder
     } // end  recycler view adapter
@@ -862,6 +877,8 @@ public class MyPackagesActivity extends RealmBaseActivity
                                     Log.e(LOG, " --REConnected Update Firebase --- " + " SSID " + ssid);
 
                                     if (dataReady) {
+
+
                                         //TODO update firebase call
                                         // do subroutines here
                                         String dataTag = packageID;
@@ -872,7 +889,11 @@ public class MyPackagesActivity extends RealmBaseActivity
 
                                         // Create a new parcel (realm object)
                                         Parcel p = new Parcel(dataTag);
-                                        p.setReceiverID(userName); // TODO: 5/17/2017 confirm receiver ID on scan
+
+//                                        {
+//                                            p.setReceiverID(receiverID); // TODO: 5/17/2017 confirm receiver ID on scan
+//                                            p.setShipperID(userName);
+//                                        }
                                         String currentTime = DateFormat.getDateTimeInstance().format(new Date());
                                         p.setReceiveDate(currentTime);
                                         // Add the data logs to the parcel
@@ -880,8 +901,8 @@ public class MyPackagesActivity extends RealmBaseActivity
                                         p.writeTempLog(tempLog);
                                         p.writeHumidLog(humidLog);
                                         // Update the parcel in Realm & Firebase
-                                        updateParcels(p);
-
+                                       // updateParcels(p);
+                                        updateParcelsInFirebase(p);
 
                                         dataReady = false;
                                     }
@@ -943,7 +964,7 @@ public class MyPackagesActivity extends RealmBaseActivity
 
                     if (gettingPackage){
                         //TODO  package is data value
-                        //packageID = data;
+                        packageID = data;
                         Log.d(LOG, "package ID: " + data);
 
                         gettingPackage = false;
@@ -1051,6 +1072,8 @@ public class MyPackagesActivity extends RealmBaseActivity
         //update item in Realm
         Parcel updatedP = updateParcelsInRealm(p);
         //update item in Firebase
+        Log.d(TAG,"Updated to REALM: ");
+
         if (firebase != null) {
             updateParcelsInFirebase(updatedP); //also sets the FbKey for parcel
             Log.d(TAG,"parcel updated in firebase with key: "+p.getFirebaseID());
@@ -1099,10 +1122,44 @@ public class MyPackagesActivity extends RealmBaseActivity
 
     private void updateParcelsInFirebase(Parcel p){
         //update the parcel in firebase using its key
-        String updateID = p.getFirebaseID();
-        String shipperID = p.getShipperID();
+        String updateID = packageID;//p.getFirebaseID();
+        //String shipperID = p.getShipperID();
         Log.d(TAG,"writing parcel to Firebase with fb Id: " + updateID);
-        packagesRef.child(updateID).setValue(p).addOnCompleteListener(
+        packagesRef.child(updateID).child("humidLog").setValue(p.getHumidLog()).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Parcel updated", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+        packagesRef.child(updateID).child("impactEvents").setValue(p.getImpactEvents()).addOnCompleteListener(
+                new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Parcel updated", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                        else{
+                            //display error toast
+                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
+                            toast.show();
+                        }
+                    }
+                }
+        );
+        packagesRef.child(updateID).child("tempLog").setValue(p.getTempLog()).addOnCompleteListener(
                 new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -1135,21 +1192,21 @@ public class MyPackagesActivity extends RealmBaseActivity
                     }
                 }
         );
-        userRef.child(shipperID).child(updateID).child("status").setValue("Received").addOnCompleteListener(
-                new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if(task.isSuccessful()){
-                            Log.d(TAG,"Added to shipper");
-                        }
-                        else{
-                            //display error toast
-                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
-                            toast.show();
-                        }
-                    }
-                }
-        );
+//        userRef.child(shipperID).child(updateID).child("status").setValue("Received").addOnCompleteListener(
+//                new OnCompleteListener<Void>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<Void> task) {
+//                        if(task.isSuccessful()){
+//                            Log.d(TAG,"Added to shipper");
+//                        }
+//                        else{
+//                            //display error toast
+//                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
+//                            toast.show();
+//                        }
+//                    }
+//                }
+//        );
     }
 
 
