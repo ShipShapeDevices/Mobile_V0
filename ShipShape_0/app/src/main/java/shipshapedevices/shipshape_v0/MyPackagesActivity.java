@@ -516,7 +516,7 @@ public class MyPackagesActivity extends RealmBaseActivity
             super.onCreate(savedInstanceState);
             setTitle("Create new package");
             //createRecIDEntry.setText("hello"); TODO check the receiver to see if itsa  valid user
-            setCancelable(true);
+            setCancelable(false);
             // Link the dialog layout
             setContentView(R.layout.dialog_create);
             // Bind views
@@ -753,7 +753,7 @@ public class MyPackagesActivity extends RealmBaseActivity
                                     Intent mypac2stat = new Intent(MyPackagesActivity.this, GraphingActivity.class);
                                     mypac2stat.putExtra("CurrentParcelID", parcel.getParcelID());
                                     startActivity(mypac2stat);
-                                    Toast.makeText(MyPackagesActivity.this, parcel.getParcelID(), Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(MyPackagesActivity.this, parcel.getParcelID(), Toast.LENGTH_SHORT).show();
                                 }
                                 // else if no data exists in parcel
                                 else {
@@ -806,10 +806,10 @@ public class MyPackagesActivity extends RealmBaseActivity
                     loggingData = true;
                     gettingPackageID = true;
                     if(networkSSID.equals("ShipShapeWIFI")) {
-                        Toast.makeText(this, networkSSID, Toast.LENGTH_SHORT).show();
+                       // Toast.makeText(this, networkSSID, Toast.LENGTH_SHORT).show();
                     }
                     if(URL.equals("192.168.4.1")) {
-                        Toast.makeText(this, URL, Toast.LENGTH_SHORT).show();
+                       // Toast.makeText(this, URL, Toast.LENGTH_SHORT).show();
                     }
                     Toast.makeText(this, packageID, Toast.LENGTH_SHORT).show();
                 } else {
@@ -1131,13 +1131,13 @@ public class MyPackagesActivity extends RealmBaseActivity
                     public void onComplete(@NonNull Task<Void> task) {
                         if(task.isSuccessful()){
                             //display error toast
-                            Toast toast = Toast.makeText(getApplicationContext(),"Parcel updated", Toast.LENGTH_SHORT);
-                            toast.show();
+                          //  Toast toast = Toast.makeText(getApplicationContext(),"Parcel updated", Toast.LENGTH_SHORT);
+                           // toast.show();
                         }
                         else{
                             //display error toast
-                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
-                            toast.show();
+                           // Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
+                            //toast.show();
                         }
                     }
                 }
@@ -1148,13 +1148,13 @@ public class MyPackagesActivity extends RealmBaseActivity
                     public void onComplete(@NonNull Task<Void> task) {
                         if(task.isSuccessful()){
                             //display error toast
-                            Toast toast = Toast.makeText(getApplicationContext(),"Parcel updated", Toast.LENGTH_SHORT);
-                            toast.show();
+                           // Toast toast = Toast.makeText(getApplicationContext(),"Parcel updated", Toast.LENGTH_SHORT);
+                           // toast.show();
                         }
                         else{
                             //display error toast
-                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
-                            toast.show();
+                            //Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
+                            //toast.show();
                         }
                     }
                 }
@@ -1170,8 +1170,8 @@ public class MyPackagesActivity extends RealmBaseActivity
                         }
                         else{
                             //display error toast
-                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
-                            toast.show();
+                           // Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel object write error", Toast.LENGTH_SHORT);
+                           // toast.show();
                         }
                     }
                 }
@@ -1186,8 +1186,8 @@ public class MyPackagesActivity extends RealmBaseActivity
                         }
                         else{
                             //display error toast
-                            Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
-                            toast.show();
+                           // Toast toast = Toast.makeText(getApplicationContext(),"Firebase parcel ref write error", Toast.LENGTH_SHORT);
+                           // toast.show();
                         }
                     }
                 }
